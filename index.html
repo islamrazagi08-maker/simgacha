@@ -12,8 +12,7 @@
             --glass-border: rgba(255, 255, 255, 0.1);
             --text-main: #c5c6c7;
             --text-bright: #ffffff;
-            --accent: #66fcf1;
-            --accent-dark: #45a29e;
+            --accent: #66fcf1; /* Изменяется через JS */
             --danger: #ff4c4c;
         }
 
@@ -150,32 +149,30 @@
         }
         .sell-tag.active { border-color: currentColor; box-shadow: 0 0 10px currentColor inset; color: #fff; }
         .btn-full {
-            width: 100%; padding: 12px; background: var(--accent-dark); color: white;
-            border: none; border-radius: 10px; font-weight: bold; cursor: pointer; margin-bottom: 8px; transition: 0.2s;
+            width: 100%; padding: 12px; background: rgba(255,255,255,0.1); color: var(--text-bright);
+            border: 1px solid var(--glass-border); border-radius: 10px; font-weight: bold; cursor: pointer; margin-bottom: 8px; transition: 0.2s;
         }
         .btn-full:active { transform: scale(0.98); }
-        .btn-full.danger { background: rgba(255, 76, 76, 0.8); }
+        .btn-full.primary { background: var(--accent); color: #000; border: none; }
+        .btn-full.danger { background: rgba(255, 76, 76, 0.8); color: white; border: none;}
 
-        .filters { display: flex; gap: 10px; margin-bottom: 15px; }
+        .filters { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
         select {
-            flex: 1; padding: 12px; border-radius: 10px; background: rgba(0,0,0,0.5);
-            color: white; border: 1px solid var(--glass-border); font-size: 14px; outline: none;
+            padding: 10px; border-radius: 10px; background: rgba(0,0,0,0.5);
+            color: white; border: 1px solid var(--glass-border); font-size: 12px; outline: none;
         }
         
-        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 10px; }
         .card {
             background: rgba(255,255,255,0.02); border: 1px solid var(--glass-border); border-radius: 12px;
             padding: 15px 10px; display: flex; flex-direction: column; align-items: center; text-align: center; position: relative;
+            cursor: pointer; transition: 0.2s;
         }
+        .card:hover { background: rgba(255,255,255,0.05); }
         .card-num { font-family: 'Courier New', monospace; font-size: 13px; margin: 15px 0 5px 0; font-weight: bold;}
-        .card-price { color: #ffd700; font-size: 14px; margin-bottom: 2px; }
-        .card-commission { color: var(--danger); font-size: 10px; margin-bottom: 10px; }
-        .card-actions { display: flex; flex-direction: column; gap: 8px; width: 100%; }
-        .card-actions button { padding: 8px; font-size: 12px; border: none; border-radius: 8px; cursor: pointer; color: #000; font-weight: bold;}
-        .btn-equip { background: var(--accent); }
-        .btn-sell { background: var(--danger); color: white !important;}
-        .lock-icon { position: absolute; top: 10px; right: 10px; font-size: 16px; cursor: pointer; opacity: 0.4; transition: 0.2s; padding: 5px;}
-        .lock-icon.locked { opacity: 1; }
+        .card-price { color: #ffd700; font-size: 14px; margin-bottom: 5px; }
+        .lock-icon { position: absolute; top: 10px; right: 10px; font-size: 16px; opacity: 0.5; }
+        .lock-icon.locked { opacity: 1; text-shadow: 0 0 10px #fff; }
 
         .upgrade-card {
             background: rgba(255,255,255,0.02); border: 1px solid var(--glass-border); border-radius: 12px;
@@ -185,16 +182,48 @@
         .btn-upg { background: var(--accent); border: none; border-radius: 8px; color: #000; padding: 10px 15px; font-weight: bold; cursor: pointer; }
         .btn-upg:disabled { background: #333; color: #777; }
         
-        .stat-item { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .stat-item { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 14px; }
         .stat-item:last-child { border-bottom: none; }
+        .stat-header { font-size: 12px; color: var(--accent); text-transform: uppercase; margin-top: 15px; margin-bottom: 5px; font-weight: bold; }
+
+        /* Модальное окно детализации номера */
+        .modal-overlay {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.8); z-index: 200; justify-content: center; align-items: center;
+            backdrop-filter: blur(5px);
+        }
+        .modal-overlay.active { display: flex; animation: fadeIn 0.2s; }
+        .modal-content {
+            background: linear-gradient(135deg, #1f2833, #0b0c10); border: 1px solid var(--glass-border);
+            padding: 25px 20px; border-radius: 20px; width: 85%; max-width: 350px;
+            text-align: center; box-shadow: 0 15px 35px rgba(0,0,0,0.6); position: relative;
+        }
+        .modal-close {
+            position: absolute; top: 15px; right: 15px; background: none; border: none;
+            color: #fff; font-size: 24px; cursor: pointer; opacity: 0.6;
+        }
+        .modal-close:hover { opacity: 1; }
+        .modal-btn { width: 100%; padding: 12px; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; margin-bottom: 10px; font-size: 14px; }
+    
+        /* Настройки цветов */
+        .color-presets { display: flex; gap: 10px; justify-content: center; margin-top: 10px; }
+        .color-btn { width: 30px; height: 30px; border-radius: 50%; cursor: pointer; border: 2px solid transparent; transition: 0.2s; }
+        .color-btn.active { border-color: #fff; transform: scale(1.1); box-shadow: 0 0 10px currentColor; }
+        
+        .switch { position: relative; display: inline-block; width: 40px; height: 20px; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #333; transition: .4s; border-radius: 20px; }
+        .slider:before { position: absolute; content: ""; height: 16px; width: 16px; left: 2px; bottom: 2px; background-color: white; transition: .4s; border-radius: 50%; }
+        input:checked + .slider { background-color: var(--accent); }
+        input:checked + .slider:before { transform: translateX(20px); }
     </style>
 </head>
 <body>
 
     <nav class="top-nav">
         <button class="nav-item active" onclick="switchTab('gen', this)">Крутить</button>
-        <button class="nav-item" onclick="switchTab('col', this)">Сейф</button>
-        <button class="nav-item" onclick="switchTab('upg', this)">Навыки</button>
+        <button class="nav-item" onclick="switchTab('col', this)">Коллекция</button>
+        <button class="nav-item" onclick="switchTab('upg', this)">Апгрейды</button>
         <button class="nav-item" onclick="switchTab('prof', this)">Профиль</button>
     </nav>
 
@@ -205,6 +234,35 @@
     </div>
 
     <div id="toast-container"></div>
+
+    <!-- МОДАЛЬНОЕ ОКНО ПРОСМОТРА НОМЕРА -->
+    <div id="simModal" class="modal-overlay" onclick="if(event.target===this) closeModal()">
+        <div class="modal-content">
+            <button class="modal-close" onclick="closeModal()">×</button>
+            <div id="modalRarity" style="font-size: 12px; text-transform: uppercase; margin-bottom: 5px; font-weight: bold;"></div>
+            <div id="modalNumber" style="font-size: 24px; font-weight: bold; font-family: 'Courier New', monospace; margin-bottom: 15px;"></div>
+            
+            <div style="background: rgba(255,255,255,0.05); border-radius: 10px; padding: 15px; margin-bottom: 20px; border: 1px solid var(--glass-border);">
+                <div id="modalDesc" style="font-size: 14px; color: var(--text-bright); margin-bottom: 10px;"></div>
+                <div id="modalMultiplier" style="font-size: 14px; color: var(--accent); font-weight: bold; margin-bottom: 10px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px;"></div>
+                <div style="display: flex; justify-content: space-between; font-size: 12px; color: var(--text-main); margin-bottom: 5px;">
+                    <span>Цена на рынке:</span> <span id="modalBasePrice"></span>
+                </div>
+                <div style="display: flex; justify-content: space-between; font-size: 12px; color: var(--danger); margin-bottom: 5px;">
+                    <span>Комиссия (15%):</span> <span id="modalComm"></span>
+                </div>
+                <div style="display: flex; justify-content: space-between; font-size: 18px; color: #ffd700; font-weight: bold; margin-top: 10px;">
+                    <span>Прибыль:</span> <span id="modalFinalPrice"></span>
+                </div>
+            </div>
+
+            <div>
+                <button class="modal-btn" id="modalEquipBtn" style="background: var(--accent); color: #000;" onclick="modalEquip()"></button>
+                <button class="modal-btn" id="modalSafeBtn" style="background: #3f51b5; color: white;" onclick="modalToggleSafe()"></button>
+                <button class="modal-btn" id="modalSellBtn" style="background: var(--danger); color: white;" onclick="modalSell()">Продать</button>
+            </div>
+        </div>
+    </div>
 
     <div class="content">
         <!-- ТАБ 1: ГЕНЕРАТОР -->
@@ -229,13 +287,16 @@
         <!-- ТАБ 2: КОЛЛЕКЦИЯ -->
         <div id="tab-col" class="tab-content">
             <div class="glass-panel">
-                <div style="font-size: 14px; margin-bottom: 10px;">Быстрая продажа</div>
+                <div style="font-size: 14px; margin-bottom: 10px;">Быстрая продажа (из коллекции)</div>
                 <div class="mass-sell-tags" id="massSellTags"></div>
-                <button class="btn-full" onclick="sellSelectedRarities()">Продать выбранные редкости</button>
+                <button class="btn-full primary" onclick="sellSelectedRarities()">Продать выбранные редкости</button>
                 <button class="btn-full danger" onclick="sellAllUnprotected()">Продать всё незащищенное</button>
             </div>
+            
             <div class="filters">
-                <select id="filterRarity" onchange="renderCollection()"><option value="all">Все редкости</option></select>
+                <div style="font-size: 14px; font-weight: bold; color: var(--accent);">
+                    Слоты: <span id="colCapacityCount">0/20</span>
+                </div>
                 <select id="sortPrice" onchange="renderCollection()">
                     <option value="desc">Сначала дорогие</option>
                     <option value="asc">Сначала дешевые</option>
@@ -244,25 +305,67 @@
             <div class="grid" id="collectionGrid"></div>
         </div>
 
-        <!-- ТАБ 3: ПРОКАЧКА -->
+        <!-- ТАБ 3: АПГРЕЙДЫ -->
         <div id="tab-upg" class="tab-content">
-            <div style="margin-bottom: 20px; color: var(--text-main); font-size: 14px;">Вложите деньги в себя, чтобы зарабатывать больше.</div>
+            <div style="margin-bottom: 20px; color: var(--text-main); font-size: 14px;">Вложите деньги в развитие бизнеса (комиссия всегда 15%).</div>
             <div id="upgradesList"></div>
         </div>
 
-        <!-- ТАБ 4: ПРОФИЛЬ -->
+        <!-- ТАБ 4: ПРОФИЛЬ И НАСТРОЙКИ -->
         <div id="tab-prof" class="tab-content">
             <div class="glass-panel" style="text-align: center; padding: 30px;">
                 <div style="font-size: 50px; margin-bottom: 10px;">💼</div>
                 <div style="color: var(--text-main); font-size: 14px;">Ваш эксклюзивный номер:</div>
                 <div id="profEquipped" style="font-size: 22px; font-family: monospace; font-weight: bold; margin-top: 10px; color: var(--accent);">Нет номера</div>
             </div>
+
+            <!-- Настройки -->
+            <div class="glass-panel">
+                <h3 style="margin-top:0; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px;">Настройки</h3>
+                
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                    <span style="font-size: 14px;">Быстрые генерации (Отключить анимации)</span>
+                    <label class="switch">
+                        <input type="checkbox" id="animToggle" onchange="toggleAnim(this)">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                
+                <div style="font-size: 14px; text-align: center; margin-bottom: 10px;">Цвет интерфейса</div>
+                <div class="color-presets">
+                    <div class="color-btn" style="background:#66fcf1; color:#66fcf1;" onclick="changeColor('#66fcf1', this)"></div>
+                    <div class="color-btn" style="background:#ff4c4c; color:#ff4c4c;" onclick="changeColor('#ff4c4c', this)"></div>
+                    <div class="color-btn" style="background:#ffd700; color:#ffd700;" onclick="changeColor('#ffd700', this)"></div>
+                    <div class="color-btn" style="background:#ba68c8; color:#ba68c8;" onclick="changeColor('#ba68c8', this)"></div>
+                    <div class="color-btn" style="background:#81c784; color:#81c784;" onclick="changeColor('#81c784', this)"></div>
+                </div>
+            </div>
+
+            <!-- Расширенная статистика -->
             <div class="glass-panel">
                 <h3 style="margin-top:0; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px;">Статистика бизнеса</h3>
-                <div class="stat-item"><span>Генераций:</span><strong id="profTotalGens">0</strong></div>
-                <div class="stat-item"><span>Общий доход:</span><strong id="profTotalEarned" style="color: var(--accent)">0 ₽</strong></div>
+                
+                <div class="stat-item"><span>Всего генераций:</span><strong id="profTotalGens">0</strong></div>
+                <div class="stat-item"><span>Общий доход:</span><strong id="profTotalEarned" style="color: #ffd700">0 ₽</strong></div>
+                
+                <div class="stat-header">Редкости номеров</div>
+                <div class="stat-item"><span>Обычные:</span><strong id="stat-common">0</strong></div>
+                <div class="stat-item"><span>Необычные:</span><strong id="stat-uncommon">0</strong></div>
+                <div class="stat-item"><span>Редкие:</span><strong id="stat-rare">0</strong></div>
+                <div class="stat-item"><span>Эпические:</span><strong id="stat-epic">0</strong></div>
+                <div class="stat-item"><span>Легендарные:</span><strong id="stat-legendary">0</strong></div>
+                <div class="stat-item"><span>Мифические:</span><strong id="stat-mythic">0</strong></div>
+
+                <div class="stat-header">Редкие паттерны</div>
+                <div class="stat-item"><span>👑 Бриллиант (7 одинаковых):</span><strong id="stat-diamond">0</strong></div>
+                <div class="stat-item"><span>💎 Платина (6 подряд):</span><strong id="stat-platinum">0</strong></div>
+                <div class="stat-item"><span>✨ Флеш (5 подряд):</span><strong id="stat-flash">0</strong></div>
+                <div class="stat-item"><span>🃏 Каре (4 подряд):</span><strong id="stat-kare">0</strong></div>
+                <div class="stat-item"><span>🎲 Тройная пара (Бабочка):</span><strong id="stat-butterfly">0</strong></div>
+                <div class="stat-item"><span>🎯 Три нуля на конце:</span><strong id="stat-zeros">0</strong></div>
             </div>
-            <button class="btn-full danger" style="margin-top: 20px;" onclick="resetProgress()">Сбросить весь прогресс (Удалить сохранение)</button>
+
+            <button class="btn-full danger" style="margin-top: 10px;" onclick="resetProgress()">Сбросить весь прогресс (Удалить сейв)</button>
         </div>
     </div>
 
@@ -282,26 +385,37 @@
         };
 
         const UPGRADES = {
-            commission: { id: 'commission', name: 'Налоговый вычет', desc: 'Снижает комиссию на 2%', maxLevel: 5, baseCost: 10000, mult: 2.5 },
-            genCost: { id: 'genCost', name: 'Опт-поставщик', desc: 'Снижает цену SIM на 50 ₽', maxLevel: 5, baseCost: 5000, mult: 2 },
+            capacity: { id: 'capacity', name: 'Сервер хранения', desc: 'Увеличивает вместимость коллекции на 10', maxLevel: 10, baseCost: 2000, mult: 1.5 },
             luck: { id: 'luck', name: 'Связи у оператора', desc: 'Повышает шанс редких номеров', maxLevel: 5, baseCost: 15000, mult: 3 }
         };
 
-        const SAVE_KEY = 'simgacha_save_v2';
+        const SAVE_KEY = 'simgacha_save_v4';
         const defaultState = {
             balance: 5000, collection: [], equipped: null,
-            stats: { generated: 0, earned: 0 },
-            upgrades: { commission: 0, genCost: 0, luck: 0 },
-            market: { active: false, rarityId: null, mult: 1 }
+            stats: { 
+                generated: 0, earned: 0,
+                rarities: { common: 0, uncommon: 0, rare: 0, epic: 0, legendary: 0, mythic: 0 },
+                patterns: { diamond: 0, platinum: 0, flash: 0, kare: 0, butterfly: 0, doublePair: 0, zeros: 0 }
+            },
+            upgrades: { capacity: 0, luck: 0 },
+            market: { active: false, rarityId: null, mult: 1 },
+            settings: { fastMode: false, color: '#66fcf1' }
         };
 
         let savedData = localStorage.getItem(SAVE_KEY);
         let state = savedData ? JSON.parse(savedData) : JSON.parse(JSON.stringify(defaultState));
+        
+        // Миграция старых сейвов, чтобы не терять баланс
+        if(!state.stats.rarities) state.stats.rarities = { common: 0, uncommon: 0, rare: 0, epic: 0, legendary: 0, mythic: 0 };
+        if(!state.stats.patterns) state.stats.patterns = { diamond: 0, platinum: 0, flash: 0, kare: 0, butterfly: 0, doublePair: 0, zeros: 0 };
+        if(!state.settings) state.settings = { fastMode: false, color: '#66fcf1' };
+        if(state.upgrades.commission !== undefined) delete state.upgrades.commission;
+        if(state.upgrades.genCost !== undefined) delete state.upgrades.genCost;
 
         function saveGame() { localStorage.setItem(SAVE_KEY, JSON.stringify(state)); }
 
         function resetProgress() {
-            if (confirm("Вы уверены? Это удалит все ваши деньги и собранные номера навсегда!")) {
+            if (confirm("Вы уверены? Это удалит все ваши деньги и номера навсегда!")) {
                 localStorage.removeItem(SAVE_KEY); location.reload();
             }
         }
@@ -309,6 +423,29 @@
         let isAnimating = false;
         let selectedTags = new Set();
         let lastToastMsg = "";
+        let currentModalItemId = null; 
+
+        // Применяем настройки при старте
+        document.documentElement.style.setProperty('--accent', state.settings.color);
+        document.getElementById('animToggle').checked = state.settings.fastMode;
+        
+        function changeColor(hex, btnEl) {
+            state.settings.color = hex;
+            document.documentElement.style.setProperty('--accent', hex);
+            document.querySelectorAll('.color-btn').forEach(b => b.classList.remove('active'));
+            if(btnEl) btnEl.classList.add('active');
+            saveGame();
+        }
+        function toggleAnim(cb) {
+            state.settings.fastMode = cb.checked;
+            saveGame();
+        }
+        // Подсветить нужную кнопку цвета
+        setTimeout(() => {
+            document.querySelectorAll('.color-btn').forEach(b => {
+                if(b.style.backgroundColor === state.settings.color) b.classList.add('active');
+            });
+        }, 100);
 
         function showToast(msg, type = 'info') {
             if (lastToastMsg === msg) {
@@ -318,20 +455,20 @@
             lastToastMsg = msg;
             const container = document.getElementById('toast-container');
             if (container.children.length >= 2) container.removeChild(container.firstChild);
-
             const toast = document.createElement('div');
             toast.className = `toast ${type}`; toast.innerText = msg;
             container.appendChild(toast);
-
             setTimeout(() => { if(toast.parentElement) toast.parentElement.removeChild(toast); if(lastToastMsg === msg) lastToastMsg = ""; }, 2000);
         }
 
-        function getGenCost() { return 500 - (state.upgrades.genCost * 50); }
-        function getCommissionPercent() { return 15 - (state.upgrades.commission * 2); }
+        function getMaxCapacity() { return 20 + (state.upgrades.capacity * 10); }
+        function getGenCost() { return 500; } // Фиксировано
+        function getCommissionPercent() { return 15; } // Фиксировано
         
         function updateBalanceUI() {
             document.getElementById('headerBalance').innerText = state.balance.toLocaleString('ru-RU');
-            document.getElementById('genCostHint').innerText = `Стоимость SIM: ${getGenCost()} ₽`;
+            document.getElementById('colCapacityCount').innerText = `${state.collection.length}/${getMaxCapacity()}`;
+            document.getElementById('colCapacityCount').style.color = state.collection.length >= getMaxCapacity() ? 'var(--danger)' : 'var(--accent)';
         }
 
         function switchTab(tabId, btn) {
@@ -347,7 +484,7 @@
         function updateMarket() {
             if (Math.random() < 0.4) {
                 state.market.active = false;
-                document.getElementById('marketTicker').innerHTML = `⚖️ Рынок стабилен | Комиссия: ${getCommissionPercent()}%`;
+                document.getElementById('marketTicker').innerHTML = `⚖️ Рынок стабилен | Комиссия: 15%`;
                 document.getElementById('marketTicker').style.color = 'var(--text-main)';
             } else {
                 state.market.active = true;
@@ -357,7 +494,7 @@
                 let isGood = state.market.mult >= 1;
                 let text = isGood ? `📈 Спрос на ${RARITIES[state.market.rarityId].name} (x${state.market.mult})` 
                                   : `📉 Падение цен на ${RARITIES[state.market.rarityId].name} (x${state.market.mult})`;
-                document.getElementById('marketTicker').innerHTML = `${text} | Комиссия: ${getCommissionPercent()}%`;
+                document.getElementById('marketTicker').innerHTML = `${text} | Комиссия: 15%`;
                 document.getElementById('marketTicker').style.color = isGood ? '#81c784' : '#ff5252';
             }
             saveGame(); 
@@ -365,37 +502,17 @@
         }
         setInterval(updateMarket, 30000);
 
-        // --- НОВЫЙ АЛГОРИТМ ГЕНЕРАЦИИ ---
         function generateNumberFormat(rarityId) {
             let p = () => Math.floor(Math.random() * 10);
             let pref = "9" + p() + p();
-            
-            if (rarityId === 'mythic') return `+7 (${pref}) 777-77-77`; // 7 одинаковых
-            
-            if (rarityId === 'legendary') {
-                let d = p();
-                return `+7 (${pref}) ${p()}${d}${d}-${d}${d}-${d}${p()}`; // 5 одинаковых подряд (Флеш)
-            }
-            
-            if (rarityId === 'epic') {
-                let d = p();
-                return `+7 (${pref}) ${p()}${d}${d}-${d}${d}-${p()}${p()}`; // 4 одинаковых подряд (Каре)
-            }
-            
-            if (rarityId === 'rare') {
-                let d1 = p(), d2 = p(), d3 = p();
-                return `+7 (${pref}) ${p()}${d1}${d1}-${d2}${d2}-${d3}${d3}`; // 3 пары (Тройная бабочка)
-            }
-            
-            if (rarityId === 'uncommon') {
-                let d1 = p(), d2 = p();
-                return `+7 (${pref}) ${p()}${p()}${p()}-${d1}${d1}-${d2}${d2}`; // 2 пары
-            }
-            
-            return `+7 (${pref}) ${p()}${p()}${p()}-${p()}${p()}-${p()}${p()}`; // Обычный рандом
+            if (rarityId === 'mythic') return `+7 (${pref}) 777-77-77`; 
+            if (rarityId === 'legendary') { let d = p(); return `+7 (${pref}) ${p()}${d}${d}-${d}${d}-${d}${p()}`; }
+            if (rarityId === 'epic') { let d = p(); return `+7 (${pref}) ${p()}${d}${d}-${d}${d}-${p()}${p()}`; }
+            if (rarityId === 'rare') { let d1 = p(), d2 = p(), d3 = p(); return `+7 (${pref}) ${p()}${d1}${d1}-${d2}${d2}-${d3}${d3}`; }
+            if (rarityId === 'uncommon') { let d1 = p(), d2 = p(); return `+7 (${pref}) ${p()}${p()}${p()}-${d1}${d1}-${d2}${d2}`; }
+            return `+7 (${pref}) ${p()}${p()}${p()}-${p()}${p()}-${p()}${p()}`; 
         }
 
-        // --- НОВЫЙ УМНЫЙ АНАЛИЗАТОР ПАТТЕРНОВ ---
         function calculateDynamicData(number, rarityId) {
             let min, max;
             if (rarityId === 'mythic') { min = 1500000; max = 3000000; }
@@ -406,48 +523,28 @@
             else { min = 100; max = 300; }
 
             let base = Math.floor(Math.random() * (max - min + 1)) + min;
-            
             let clean = number.replace(/\D/g, ''); 
-            let tail = clean.slice(-7); // Берем последние 7 цифр
+            let tail = clean.slice(-7);
             
             let desc = "Красивый номер для бизнеса";
             let bonus = 1.0;
+            let patternId = null;
 
-            if (/(.)\1{6}/.test(tail)) {
-                desc = "👑 Бриллиант (7 одинаковых цифр)";
-                bonus = 3.0;
-            } else if (/(.)\1{5}/.test(tail)) {
-                desc = "💎 Платина (6 цифр подряд)";
-                bonus = 2.0;
-            } else if (/(.)\1{4}/.test(tail)) {
-                let d = tail.match(/(.)\1{4}/)[1];
-                desc = `✨ Флеш: Пять «${d}» подряд`;
-                bonus = 1.5;
-            } else if (/(.)\1{3}/.test(tail)) {
-                let d = tail.match(/(.)\1{3}/)[1];
-                desc = `🃏 Каре из «${d}» (4 подряд)`;
-                bonus = 1.25;
-            } else if (/(.)\1(.)\2(.)\3/.test(tail)) {
-                desc = "🎲 Тройная пара (Бабочка)";
-                bonus = 1.2;
-            } else if (/(.)\1.*(.)\2/.test(tail)) {
-                desc = "🎭 Двойная пара";
-                bonus = 1.1;
-            } else if (/000$/.test(tail)) {
-                desc = "🎯 Ровный: Три нуля на конце";
-                bonus = 1.15;
-            } else {
+            if (/(.)\1{6}/.test(tail)) { desc = "👑 Бриллиант (7 одинаковых)"; bonus = 3.0; patternId = 'diamond'; } 
+            else if (/(.)\1{5}/.test(tail)) { desc = "💎 Платина (6 подряд)"; bonus = 2.0; patternId = 'platinum'; } 
+            else if (/(.)\1{4}/.test(tail)) { desc = `✨ Флеш (5 подряд)`; bonus = 1.5; patternId = 'flash'; } 
+            else if (/(.)\1{3}/.test(tail)) { desc = `🃏 Каре (4 подряд)`; bonus = 1.25; patternId = 'kare'; } 
+            else if (/(.)\1(.)\2(.)\3/.test(tail)) { desc = "🎲 Тройная пара (Бабочка)"; bonus = 1.2; patternId = 'butterfly'; } 
+            else if (/(.)\1.*(.)\2/.test(tail)) { desc = "🎭 Двойная пара"; bonus = 1.1; patternId = 'doublePair'; } 
+            else if (/000$/.test(tail)) { desc = "🎯 Ровный: Три нуля в конце"; bonus = 1.15; patternId = 'zeros'; } 
+            else {
                 let sevens = (number.match(/7/g) || []).length;
-                if (sevens >= 3) {
-                    desc = `🍀 Счастливый (${sevens} семёрок)`;
-                    bonus = 1.1;
-                } else if (rarityId === 'common' || rarityId === 'uncommon') {
-                    desc = "Стандартный номер";
-                }
+                if (sevens >= 3) { desc = `🍀 Счастливый (${sevens} семёрок)`; bonus = 1.1; } 
+                else if (rarityId === 'common' || rarityId === 'uncommon') { desc = "Стандартный номер"; }
             }
 
             let finalPrice = Math.floor(base * bonus);
-            return { basePrice: finalPrice, desc: desc };
+            return { basePrice: finalPrice, desc: desc, bonus: bonus, patternId: patternId };
         }
 
         function getMarketPrice(basePrice, rarityId) {
@@ -460,7 +557,6 @@
             function type() { if (i < text.length) { element.innerHTML += text.charAt(i); i++; setTimeout(type, speed); } }
             type();
         }
-
         function animateValue(obj, start, end, duration) {
             let startTimestamp = null;
             const step = (timestamp) => {
@@ -477,8 +573,13 @@
 
         function generateSim() {
             if (isAnimating) return;
-            const cost = getGenCost();
+            
+            if (state.collection.length >= getMaxCapacity()) {
+                showToast('Коллекция переполнена! Продайте номера.', 'error');
+                return;
+            }
 
+            const cost = getGenCost();
             if (state.balance < cost) {
                 let hasUnprotected = state.collection.some(i => !i.locked && (!state.equipped || state.equipped.id !== i.id));
                 if (!hasUnprotected) {
@@ -502,13 +603,20 @@
             else if (rand < 0.35 + (0.05 * luck)) rarity = RARITIES.uncommon; 
             else rarity = RARITIES.common; 
 
+            // Обновляем статистику
+            state.stats.rarities[rarity.id] = (state.stats.rarities[rarity.id] || 0) + 1;
+
             const number = generateNumberFormat(rarity.id);
             const dynamicData = calculateDynamicData(number, rarity.id);
+            
+            if (dynamicData.patternId) {
+                state.stats.patterns[dynamicData.patternId] = (state.stats.patterns[dynamicData.patternId] || 0) + 1;
+            }
 
             const newSim = {
                 id: Date.now() + Math.random(),
                 number: number, rarity: rarity, locked: false,
-                baseDynamicPrice: dynamicData.basePrice, desc: dynamicData.desc
+                baseDynamicPrice: dynamicData.basePrice, desc: dynamicData.desc, bonus: dynamicData.bonus
             };
 
             const card = document.getElementById('simCard');
@@ -522,64 +630,103 @@
             let currentMarketPrice = getMarketPrice(newSim.baseDynamicPrice, rarity.id);
             state.collection.unshift(newSim); 
             
-            saveGame(); 
+            saveGame(); updateBalanceUI();
 
-            if (['epic', 'legendary', 'mythic'].includes(rarity.id)) {
+            // Если анимации включены и выпала редкая карточка
+            if (!state.settings.fastMode && ['epic', 'legendary', 'mythic'].includes(rarity.id)) {
                 isAnimating = true;
                 card.classList.add('dramatic-glow');
                 document.getElementById('descLabel').innerText = ''; 
-                
                 if (window.navigator && window.navigator.vibrate) navigator.vibrate([100, 50, 100]);
 
                 animateValue(document.getElementById('priceLabel'), 0, currentMarketPrice, 1500);
                 setTimeout(() => {
                     typeWriter(document.getElementById('descLabel'), newSim.desc, 40);
-                    setTimeout(() => { 
-                        isAnimating = false; 
-                        card.classList.remove('dramatic-glow');
-                    }, 1500);
+                    setTimeout(() => { isAnimating = false; card.classList.remove('dramatic-glow'); }, 1500);
                 }, 1500);
             } else {
+                // Мгновенное отображение
                 document.getElementById('priceLabel').innerText = currentMarketPrice.toLocaleString('ru-RU') + ' ₽';
                 document.getElementById('descLabel').innerText = newSim.desc;
                 if (window.navigator && window.navigator.vibrate) navigator.vibrate(10);
             }
         }
 
-        // --- ИНВЕНТАРЬ ---
-        function toggleLock(id) {
-            let item = state.collection.find(i => i.id === id);
-            if(item) { item.locked = !item.locked; renderCollection(); saveGame(); }
+        // --- МОДАЛЬНОЕ ОКНО ДЛЯ НОМЕРОВ ---
+        function openModal(id) {
+            const item = state.collection.find(i => i.id === id);
+            if(!item) return;
+            currentModalItemId = id;
+
+            const isEq = state.equipped && state.equipped.id === id;
+            let mPrice = getMarketPrice(item.baseDynamicPrice, item.rarity.id);
+            let profit = Math.floor(mPrice * (1 - getCommissionPercent()/100));
+            let commLost = mPrice - profit;
+
+            document.getElementById('modalRarity').innerText = item.rarity.name;
+            document.getElementById('modalRarity').style.color = item.rarity.color;
+            document.getElementById('modalNumber').innerText = item.number;
+            document.getElementById('modalNumber').style.color = item.rarity.color;
+            document.getElementById('modalDesc').innerText = item.desc;
+            document.getElementById('modalMultiplier').innerText = `Множитель паттерна: x${item.bonus || 1.0}`;
+            
+            document.getElementById('modalBasePrice').innerText = `${mPrice.toLocaleString()} ₽`;
+            document.getElementById('modalComm').innerText = `${commLost.toLocaleString()} ₽`;
+            document.getElementById('modalFinalPrice').innerText = `+${profit.toLocaleString()} ₽`;
+
+            const btnEq = document.getElementById('modalEquipBtn');
+            btnEq.innerText = isEq ? 'СНЯТЬ НОМЕР' : 'НАДЕТЬ НОМЕР';
+            
+            const btnSafe = document.getElementById('modalSafeBtn');
+            btnSafe.innerText = item.locked ? '🔓 ДОСТАТЬ ИЗ СЕЙФА' : '🔒 ПОЛОЖИТЬ В СЕЙФ';
+
+            const btnSell = document.getElementById('modalSellBtn');
+            btnSell.disabled = item.locked || isEq;
+            btnSell.style.opacity = (item.locked || isEq) ? '0.3' : '1';
+
+            document.getElementById('simModal').classList.add('active');
         }
 
-        function equipSim(id) {
-            let item = state.collection.find(i => i.id === id);
-            if(item) { state.equipped = item; renderCollection(); saveGame(); showToast('Номер применен', 'success'); }
+        function closeModal() { document.getElementById('simModal').classList.remove('active'); currentModalItemId = null; }
+
+        function modalEquip() {
+            if(!currentModalItemId) return;
+            const item = state.collection.find(i => i.id === currentModalItemId);
+            if (state.equipped && state.equipped.id === currentModalItemId) { state.equipped = null; showToast('Номер снят'); } 
+            else { state.equipped = item; showToast('Номер применен', 'success'); }
+            saveGame(); renderCollection(); openModal(currentModalItemId); 
         }
 
-        function sellSim(id) {
-            const idx = state.collection.findIndex(i => i.id === id);
-            if (idx === -1) return;
+        function modalToggleSafe() {
+            if(!currentModalItemId) return;
+            const item = state.collection.find(i => i.id === currentModalItemId);
+            item.locked = !item.locked;
+            saveGame(); renderCollection(); openModal(currentModalItemId); 
+        }
+
+        function modalSell() {
+            if(!currentModalItemId) return;
+            const idx = state.collection.findIndex(i => i.id === currentModalItemId);
             const item = state.collection[idx];
-            if (item.locked || (state.equipped && state.equipped.id === id)) { showToast('Номер защищен', 'error'); return; }
+            
+            if (item.locked || (state.equipped && state.equipped.id === currentModalItemId)) return;
             
             let mPrice = getMarketPrice(item.baseDynamicPrice, item.rarity.id);
             let profit = Math.floor(mPrice * (1 - getCommissionPercent()/100));
             
             state.balance += profit; state.stats.earned += profit;
             state.collection.splice(idx, 1);
-            updateBalanceUI(); renderCollection(); saveGame();
+            
+            saveGame(); updateBalanceUI(); renderCollection(); closeModal();
             showToast(`Продано: +${profit.toLocaleString()} ₽`, 'success');
         }
 
+        // --- КОЛЛЕКЦИЯ ---
         function renderCollection() {
             const grid = document.getElementById('collectionGrid');
             grid.innerHTML = '';
             
             let items = [...state.collection];
-            const filterR = document.getElementById('filterRarity').value;
-            if (filterR !== 'all') items = items.filter(i => i.rarity.id === filterR);
-
             const sortP = document.getElementById('sortPrice').value;
             items.sort((a, b) => {
                 let pa = getMarketPrice(a.baseDynamicPrice, a.rarity.id);
@@ -588,38 +735,33 @@
             });
 
             if(items.length === 0) {
-                grid.innerHTML = '<div style="grid-column:1/-1; text-align:center; color:#777; padding:20px;">Сейф пуст</div>'; return;
+                grid.innerHTML = '<div style="grid-column:1/-1; text-align:center; color:#777; padding:20px;">Коллекция пуста</div>'; return;
             }
 
             items.forEach(item => {
                 const isEq = state.equipped && state.equipped.id === item.id;
                 let mPrice = getMarketPrice(item.baseDynamicPrice, item.rarity.id);
                 let profit = Math.floor(mPrice * (1 - getCommissionPercent()/100));
-                let commLost = mPrice - profit;
 
                 const div = document.createElement('div');
-                div.className = 'card'; div.style.borderTopColor = item.rarity.color;
+                div.className = 'card'; 
+                div.style.borderTopColor = item.rarity.color;
+                if(isEq) div.style.boxShadow = `0 0 10px ${item.rarity.color} inset`;
                 
                 div.innerHTML = `
-                    <div class="lock-icon ${item.locked ? 'locked' : ''}" onclick="toggleLock(${item.id})">${item.locked ? '🔒' : '🔓'}</div>
+                    ${item.locked ? '<div class="lock-icon locked">🔒</div>' : ''}
                     <div class="card-num" style="color: ${item.rarity.color};">${item.number}</div>
-                    <div style="font-size: 10px; text-transform: uppercase; margin-bottom:10px; color:${item.rarity.color}">${item.rarity.name}</div>
+                    <div style="font-size: 10px; text-transform: uppercase; margin-bottom:5px; color:${item.rarity.color}">${item.rarity.name}</div>
                     <div class="card-price">+${profit.toLocaleString()} ₽</div>
-                    <div class="card-commission">Комс: -${commLost.toLocaleString()} ₽</div>
-                    <div class="card-actions">
-                        <button class="btn-equip" onclick="equipSim(${item.id})" ${isEq ? 'disabled style="background:#555"' : ''}>${isEq ? 'АКТИВЕН' : 'НАДЕТЬ'}</button>
-                        <button class="btn-sell" onclick="sellSim(${item.id})" ${(item.locked || isEq) ? 'disabled style="background:#555"' : ''}>ПРОДАТЬ</button>
-                    </div>
                 `;
+                div.onclick = () => openModal(item.id);
                 grid.appendChild(div);
             });
         }
 
         function initMassSellTags() {
             const container = document.getElementById('massSellTags');
-            const filterDrop = document.getElementById('filterRarity');
             container.innerHTML = '';
-            
             Object.values(RARITIES).forEach(r => {
                 let tag = document.createElement('div');
                 tag.className = 'sell-tag'; tag.innerText = r.name;
@@ -628,7 +770,6 @@
                     else { selectedTags.add(r.id); tag.classList.add('active'); tag.style.color = r.color; }
                 };
                 container.appendChild(tag);
-                filterDrop.innerHTML += `<option value="${r.id}">${r.name}</option>`;
             });
         }
 
@@ -656,15 +797,15 @@
             } else { showToast('Нечего продавать (защищено или пусто)', 'error'); }
         }
 
-        // --- ПРОКАЧКА ---
+        // --- АПГРЕЙДЫ ---
         function buyUpgrade(upgKey) {
             let upg = UPGRADES[upgKey]; let lvl = state.upgrades[upgKey];
             let cost = Math.floor(upg.baseCost * Math.pow(upg.mult, lvl));
             
             if (state.balance >= cost && lvl < upg.maxLevel) {
                 state.balance -= cost; state.upgrades[upgKey]++;
-                updateBalanceUI(); renderUpgrades(); updateMarket(); saveGame();
-                showToast('Навык улучшен!', 'success');
+                updateBalanceUI(); renderUpgrades(); saveGame();
+                showToast('Апгрейд куплен!', 'success');
             } else { showToast('Мало денег или макс. уровень', 'error'); }
         }
 
@@ -672,7 +813,7 @@
             const list = document.getElementById('upgradesList');
             list.innerHTML = '';
             for(let key in UPGRADES) {
-                let upg = UPGRADES[key]; let lvl = state.upgrades[key];
+                let upg = UPGRADES[key]; let lvl = state.upgrades[key] || 0;
                 let cost = Math.floor(upg.baseCost * Math.pow(upg.mult, lvl));
                 let isMax = lvl >= upg.maxLevel;
                 
@@ -701,13 +842,27 @@
             }
             document.getElementById('profTotalGens').innerText = state.stats.generated;
             document.getElementById('profTotalEarned').innerText = state.stats.earned.toLocaleString('ru-RU') + ' ₽';
+            
+            document.getElementById('stat-common').innerText = state.stats.rarities.common || 0;
+            document.getElementById('stat-uncommon').innerText = state.stats.rarities.uncommon || 0;
+            document.getElementById('stat-rare').innerText = state.stats.rarities.rare || 0;
+            document.getElementById('stat-epic').innerText = state.stats.rarities.epic || 0;
+            document.getElementById('stat-legendary').innerText = state.stats.rarities.legendary || 0;
+            document.getElementById('stat-mythic').innerText = state.stats.rarities.mythic || 0;
+
+            document.getElementById('stat-diamond').innerText = state.stats.patterns.diamond || 0;
+            document.getElementById('stat-platinum').innerText = state.stats.patterns.platinum || 0;
+            document.getElementById('stat-flash').innerText = state.stats.patterns.flash || 0;
+            document.getElementById('stat-kare').innerText = state.stats.patterns.kare || 0;
+            document.getElementById('stat-butterfly').innerText = state.stats.patterns.butterfly || 0;
+            document.getElementById('stat-zeros').innerText = state.stats.patterns.zeros || 0;
         }
 
         updateBalanceUI();
         initMassSellTags();
         document.getElementById('marketTicker').innerHTML = state.market.active 
-            ? `⚖️ ТЕКУЩИЙ РЫНОК (x${state.market.mult}) | Комиссия: ${getCommissionPercent()}%`
-            : `⚖️ Рынок стабилен | Комиссия: ${getCommissionPercent()}%`;
+            ? `⚖️ ТЕКУЩИЙ РЫНОК (x${state.market.mult}) | Комиссия: 15%`
+            : `⚖️ Рынок стабилен | Комиссия: 15%`;
     </script>
 </body>
 </html>
