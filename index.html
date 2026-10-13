@@ -432,8 +432,8 @@
             }
         }
 
-        // --- НОВЫЙ МЕХАНИЗМ АБОРТА АНИМАЦИЙ ПРИ СПАМЕ ---
-        let currentGenId = 0; // ID текущей генерации
+        let isAnimating = false;
+        let currentGenId = 0; 
         let selectedTags = new Set();
         let lastToastMsg = "";
         let currentModalItemId = null; 
@@ -529,6 +529,13 @@
             return `+7 (${pref}) ${p()}${p()}${p()}-${p()}${p()}-${p()}${p()}`; 
         }
 
+        // ДЕЛАЕМ ЦЕНЫ НЕКРУГЛЫМИ
+        function makeLivePrice(num) {
+            if (num <= 10) return num;
+            if (num % 10 === 0) return num + Math.floor(Math.random() * 9) + 1;
+            return num;
+        }
+
         function calculateDynamicData(number, rarityId) {
             let min, max;
             if (rarityId === 'mythic') { min = 1500000; max = 3000000; }
@@ -559,20 +566,20 @@
                 else if (rarityId === 'common' || rarityId === 'uncommon') { desc = "Стандартный номер"; }
             }
 
-            let finalPrice = Math.floor(base * bonus);
+            let finalPrice = makeLivePrice(Math.floor(base * bonus));
             return { basePrice: finalPrice, desc: desc, bonus: bonus, patternId: patternId };
         }
 
         function getMarketPrice(basePrice, rarityId) {
-            if(state.market.active && state.market.rarityId === rarityId) return Math.floor(basePrice * state.market.mult);
-            return basePrice;
+            let p = basePrice;
+            if(state.market.active && state.market.rarityId === rarityId) p = Math.floor(basePrice * state.market.mult);
+            return makeLivePrice(p);
         }
 
-        // Печатает текст. Прерывается, если начата новая генерация.
         function typeWriter(element, text, speed, genId) {
             element.innerHTML = ''; let i = 0;
             function type() { 
-                if (currentGenId !== genId) return; // ПРЕРЫВАЕМ если был новый клик
+                if (currentGenId !== genId) return; 
                 if (i < text.length) { 
                     element.innerHTML += text.charAt(i); 
                     i++; 
@@ -582,11 +589,10 @@
             type();
         }
 
-        // Анимация рулетки. Прерывается, если начата новая генерация.
         function spinSlotAnimation(priceEl, numEl, finalPrice, finalNum, finalColor, duration, genId) {
             let startTimestamp = null;
             const step = (timestamp) => {
-                if (currentGenId !== genId) return; // ПРЕРЫВАЕМ если был новый клик
+                if (currentGenId !== genId) return; 
 
                 if (!startTimestamp) startTimestamp = timestamp;
                 const progress = Math.min((timestamp - startTimestamp) / duration, 1);
@@ -599,6 +605,7 @@
                     let p = () => Math.floor(Math.random() * 10);
                     numEl.innerText = `+7 (9${p()}${p()}) ${p()}${p()}${p()}-${p()}${p()}-${p()}${p()}`;
                     numEl.style.color = '#777'; 
+                    
                     window.requestAnimationFrame(step);
                 } else {
                     priceEl.innerText = finalPrice.toLocaleString('ru-RU') + ' ₽';
@@ -630,12 +637,13 @@
         function handleTouch(e) { e.preventDefault(); generateSim(); }
 
         function generateSim() {
-            // УДАЛЕНА БЛОКИРОВКА КЛИКА (isAnimating)! Теперь можно спамить.
+            if (isAnimating) return; 
+            
             currentGenId++;
             const thisGenId = currentGenId;
-            
+
             const card = document.getElementById('simCard');
-            card.classList.remove('dramatic-glow'); // Сбрасываем свечение прошлой карты
+            card.classList.remove('dramatic-glow'); 
 
             card.classList.add('pressed');
             setTimeout(() => card.classList.remove('pressed'), 100);
@@ -658,7 +666,6 @@
 
             state.balance -= cost; state.stats.generated++; updateBalanceUI();
 
-            // Предыдущая карта улетает
             if (lastGeneratedSim) spawnSkippedAnimation(lastGeneratedSim);
 
             let luck = state.upgrades.luck * 0.01; 
@@ -702,14 +709,17 @@
             saveGame(); updateBalanceUI();
 
             if (!state.settings.fastMode) {
-                let isRare = rIdx >= 3;
-                let duration = isRare ? 1500 : 400; 
+                let isJackpot = rIdx >= 3; 
+                let duration = isJackpot ? 1500 : 400; 
                 
-                if (isRare) card.classList.add('dramatic-glow');
+                if (isJackpot) {
+                    isAnimating = true; 
+                    card.classList.add('dramatic-glow');
+                }
+                
                 document.getElementById('descLabel').innerText = ''; 
-                if (window.navigator && window.navigator.vibrate) navigator.vibrate(isRare ? [100, 50, 100] : 10);
+                if (window.navigator && window.navigator.vibrate) navigator.vibrate(isJackpot ? [100, 50, 100] : 10);
 
-                // Запускаем анимацию, передаем ID текущей генерации
                 spinSlotAnimation(
                     document.getElementById('priceLabel'), 
                     document.getElementById('simNumber'), 
@@ -721,13 +731,14 @@
                 );
 
                 setTimeout(() => {
-                    if (currentGenId !== thisGenId) return; // ПРЕРЫВАЕМ если был новый клик
+                    if (!isJackpot && currentGenId !== thisGenId) return; 
 
-                    if (isRare) {
+                    if (isJackpot) {
                         typeWriter(document.getElementById('descLabel'), newSim.desc, 30, thisGenId);
                         setTimeout(() => { 
                             if (currentGenId !== thisGenId) return;
                             card.classList.remove('dramatic-glow'); 
+                            isAnimating = false; 
                         }, 1000);
                     } else {
                         document.getElementById('descLabel').innerText = newSim.desc;
@@ -750,7 +761,7 @@
 
             const isEq = state.equipped && state.equipped.id === id;
             let mPrice = getMarketPrice(item.baseDynamicPrice, item.rarity.id);
-            let profit = Math.floor(mPrice * (1 - getCommissionPercent()/100));
+            let profit = makeLivePrice(Math.floor(mPrice * (1 - getCommissionPercent()/100)));
             let commLost = mPrice - profit;
 
             document.getElementById('modalRarity').innerText = item.rarity.name;
@@ -802,7 +813,7 @@
             if (item.locked || (state.equipped && state.equipped.id === currentModalItemId)) return;
             
             let mPrice = getMarketPrice(item.baseDynamicPrice, item.rarity.id);
-            let profit = Math.floor(mPrice * (1 - getCommissionPercent()/100));
+            let profit = makeLivePrice(Math.floor(mPrice * (1 - getCommissionPercent()/100)));
             
             state.balance += profit; state.stats.earned += profit;
             state.collection.splice(idx, 1);
@@ -831,7 +842,7 @@
             items.forEach(item => {
                 const isEq = state.equipped && state.equipped.id === item.id;
                 let mPrice = getMarketPrice(item.baseDynamicPrice, item.rarity.id);
-                let profit = Math.floor(mPrice * (1 - getCommissionPercent()/100));
+                let profit = makeLivePrice(Math.floor(mPrice * (1 - getCommissionPercent()/100)));
 
                 const div = document.createElement('div');
                 div.className = 'card'; 
@@ -876,7 +887,7 @@
                 let isEq = state.equipped && state.equipped.id === item.id;
                 if (!item.locked && !isEq && conditionFn(item)) {
                     let mPrice = getMarketPrice(item.baseDynamicPrice, item.rarity.id);
-                    totalEarned += Math.floor(mPrice * (1 - getCommissionPercent()/100));
+                    totalEarned += makeLivePrice(Math.floor(mPrice * (1 - getCommissionPercent()/100)));
                     count++;
                 } else { toKeep.push(item); }
             });
