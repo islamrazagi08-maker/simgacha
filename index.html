@@ -1,0 +1,670 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Premium SIM Gacha</title>
+    <!-- Подключение Telegram Web App SDK -->
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        :root {
+            --bg-color: #0b0c10;
+            --glass-bg: rgba(31, 40, 51, 0.7);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --text-main: #c5c6c7;
+            --text-bright: #ffffff;
+            --accent: #66fcf1;
+            --accent-dark: #45a29e;
+            --danger: #ff4c4c;
+        }
+
+        body {
+            margin: 0; padding: 0;
+            background: radial-gradient(circle at 50% 0%, #1f2833 0%, #0b0c10 80%);
+            color: var(--text-main);
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            overflow-x: hidden;
+            display: flex; flex-direction: column;
+            height: 100vh;
+            
+            /* ЗАЩИТА ОТ ВЫДЕЛЕНИЯ ТЕКСТА ПРИ СПАМЕ */
+            -webkit-user-select: none;
+            -khtml-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+            -webkit-touch-callout: none;
+            touch-action: manipulation; /* Блокирует двойной тап для зума */
+        }
+
+        /* Glassmorphism Navigation */
+        .top-nav {
+            position: fixed;
+            top: 15px; left: 50%; transform: translateX(-50%);
+            display: flex; gap: 5px;
+            background: var(--glass-bg);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            padding: 5px;
+            border-radius: 30px;
+            border: 1px solid var(--glass-border);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+            z-index: 100;
+        }
+        .nav-item {
+            background: transparent; border: none; color: var(--text-main);
+            padding: 10px 15px; border-radius: 20px; font-size: 13px; font-weight: bold;
+            cursor: pointer; transition: 0.3s; outline: none;
+        }
+        .nav-item.active {
+            background: var(--accent); color: #000; box-shadow: 0 0 10px var(--accent);
+        }
+
+        /* Market Ticker */
+        #marketTicker {
+            position: fixed; top: 70px; width: 100%;
+            text-align: center; font-size: 11px; color: var(--accent);
+            text-transform: uppercase; letter-spacing: 1px; z-index: 90;
+        }
+
+        /* Balance Info */
+        .balance-info {
+            position: fixed; top: 95px; width: 100%; text-align: center; z-index: 90;
+        }
+        .balance-val { font-size: 28px; font-weight: bold; color: #ffd700; text-shadow: 0 0 10px rgba(255,215,0,0.5); }
+
+        /* Toasts */
+        #toast-container {
+            position: fixed; top: 150px; left: 50%; transform: translateX(-50%);
+            display: flex; flex-direction: column; align-items: center; gap: 10px;
+            z-index: 1000; pointer-events: none; width: 90%;
+        }
+        .toast {
+            background: rgba(11, 12, 16, 0.95); border-left: 4px solid var(--danger);
+            color: white; padding: 12px 20px; border-radius: 8px; font-size: 14px;
+            animation: slideDown 0.3s ease-out; backdrop-filter: blur(5px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5); border: 1px solid var(--glass-border);
+        }
+        .toast.success { border-left-color: var(--accent); }
+        .toast.pulse { transform: scale(1.05); transition: 0.1s; }
+        @keyframes slideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* Content Area */
+        .content { flex: 1; overflow-y: auto; padding: 180px 20px 20px 20px; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; animation: fadeIn 0.3s; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        /* SIM Card (Generator) - БЕЗ 3D ПЕРЕВОРОТА */
+        .generator-container { display: flex; flex-direction: column; align-items: center; }
+        .sim-wrapper {
+            margin-bottom: 20px; cursor: pointer;
+            filter: drop-shadow(0 15px 25px rgba(0,0,0,0.6));
+            -webkit-tap-highlight-color: transparent; /* Убирает синий квадрат при клике на смартфонах */
+        }
+        .sim-card {
+            width: 220px; height: 340px;
+            background: linear-gradient(135deg, #2a2a35, #1a1a25);
+            border-radius: 20px; border: 1px solid rgba(255,255,255,0.1);
+            display: flex; flex-direction: column; align-items: center;
+            position: relative;
+            transition: transform 0.1s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.1s;
+        }
+        
+        /* ЭФФЕКТ НАЖАТИЯ ДЛЯ СПАМА */
+        .sim-wrapper:active .sim-card {
+            transform: scale(0.92);
+            box-shadow: inset 0 0 20px rgba(0,0,0,0.5);
+        }
+
+        .sim-card.dramatic-glow {
+            box-shadow: 0 0 40px var(--accent);
+            animation: shake 0.5s;
+        }
+
+        @keyframes shake {
+            0% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            50% { transform: translateX(5px); }
+            75% { transform: translateX(-5px); }
+            100% { transform: translateX(0); }
+        }
+        
+        .sim-chip {
+            width: 50px; height: 70px; background: linear-gradient(135deg, #ffd700, #daa520);
+            border-radius: 8px; margin-top: 50px; border: 1px solid #b8860b; pointer-events: none;
+        }
+        .sim-logo { position: absolute; bottom: 80px; font-weight: 900; letter-spacing: 4px; color: rgba(255,255,255,0.05); font-size: 28px; pointer-events: none;}
+        .sim-number {
+            position: absolute; bottom: 30px; font-size: 16px; font-family: 'Courier New', monospace;
+            background: rgba(0,0,0,0.5); padding: 8px 15px; border-radius: 10px; font-weight: bold; pointer-events: none;
+        }
+        
+        .click-hint { color: var(--text-main); font-size: 12px; text-transform: uppercase; letter-spacing: 2px; margin-top: 10px; animation: blink 2s infinite; }
+        @keyframes blink { 0%, 100% { opacity: 0.3; } 50% { opacity: 1; } }
+
+        .result-panel { text-align: center; min-height: 80px; margin-top: 10px; }
+        #rarityLabel { font-size: 22px; font-weight: bold; margin-bottom: 5px; text-transform: uppercase; letter-spacing: 1px; }
+        #priceLabel { font-size: 18px; color: #ffd700; font-weight: bold; font-family: monospace; }
+        #descLabel { font-size: 12px; color: var(--text-main); margin-top: 5px; font-style: italic; min-height: 15px;}
+
+        /* Collection & Mass Sell */
+        .glass-panel {
+            background: var(--glass-bg); border: 1px solid var(--glass-border);
+            border-radius: 15px; padding: 15px; margin-bottom: 20px; backdrop-filter: blur(10px);
+        }
+        .mass-sell-tags { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 15px; }
+        .sell-tag {
+            background: rgba(0,0,0,0.3); color: var(--text-main); padding: 8px 15px;
+            border-radius: 20px; font-size: 12px; cursor: pointer; border: 1px solid transparent; transition: 0.2s;
+        }
+        .sell-tag.active { border-color: currentColor; box-shadow: 0 0 10px currentColor inset; color: #fff; }
+        .btn-full {
+            width: 100%; padding: 12px; background: var(--accent-dark); color: white;
+            border: none; border-radius: 10px; font-weight: bold; cursor: pointer; margin-bottom: 8px; transition: 0.2s;
+        }
+        .btn-full:active { transform: scale(0.98); }
+        .btn-full.danger { background: rgba(255, 76, 76, 0.8); }
+
+        .filters { display: flex; gap: 10px; margin-bottom: 15px; }
+        select {
+            flex: 1; padding: 12px; border-radius: 10px; background: rgba(0,0,0,0.5);
+            color: white; border: 1px solid var(--glass-border); font-size: 14px; outline: none;
+        }
+        
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; }
+        .card {
+            background: rgba(255,255,255,0.02); border: 1px solid var(--glass-border); border-radius: 12px;
+            padding: 15px 10px; display: flex; flex-direction: column; align-items: center; text-align: center; position: relative;
+        }
+        .card-num { font-family: 'Courier New', monospace; font-size: 13px; margin: 15px 0 5px 0; font-weight: bold;}
+        .card-price { color: #ffd700; font-size: 14px; margin-bottom: 2px; }
+        .card-commission { color: var(--danger); font-size: 10px; margin-bottom: 10px; }
+        .card-actions { display: flex; flex-direction: column; gap: 8px; width: 100%; }
+        .card-actions button { padding: 8px; font-size: 12px; border: none; border-radius: 8px; cursor: pointer; color: #000; font-weight: bold;}
+        .btn-equip { background: var(--accent); }
+        .btn-sell { background: var(--danger); color: white !important;}
+        .lock-icon { position: absolute; top: 10px; right: 10px; font-size: 16px; cursor: pointer; opacity: 0.4; transition: 0.2s; padding: 5px;}
+        .lock-icon.locked { opacity: 1; }
+
+        /* Upgrades & Profile */
+        .upgrade-card {
+            background: rgba(255,255,255,0.02); border: 1px solid var(--glass-border); border-radius: 12px;
+            padding: 15px; margin-bottom: 15px; border-left: 4px solid var(--accent);
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .btn-upg { background: var(--accent); border: none; border-radius: 8px; color: #000; padding: 10px 15px; font-weight: bold; cursor: pointer; }
+        .btn-upg:disabled { background: #333; color: #777; }
+        
+        .stat-item { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .stat-item:last-child { border-bottom: none; }
+    </style>
+</head>
+<body>
+
+    <nav class="top-nav">
+        <button class="nav-item active" onclick="switchTab('gen', this)">Крутить</button>
+        <button class="nav-item" onclick="switchTab('col', this)">Сейф</button>
+        <button class="nav-item" onclick="switchTab('upg', this)">Навыки</button>
+        <button class="nav-item" onclick="switchTab('prof', this)">Профиль</button>
+    </nav>
+
+    <div id="marketTicker">⚖️ Рынок стабилен</div>
+    <div class="balance-info">
+        <div class="balance-val"><span id="headerBalance">5 000</span> ₽</div>
+        <div id="genCostHint" style="font-size:12px; color:var(--text-main); margin-top:5px;">Стоимость SIM: 500 ₽</div>
+    </div>
+
+    <div id="toast-container"></div>
+
+    <div class="content">
+        <!-- TAB 1: GENERATOR -->
+        <div id="tab-gen" class="tab-content active">
+            <div class="generator-container">
+                <div class="sim-wrapper" id="simWrapper" onmousedown="generateSim()" ontouchstart="handleTouch(event)">
+                    <div class="sim-card" id="simCard">
+                        <div class="sim-chip"></div>
+                        <div class="sim-logo">PREMIUM</div>
+                        <div class="sim-number" id="simNumber">+7 (***) ***-**-**</div>
+                    </div>
+                </div>
+                <div class="click-hint">Кликай быстро!</div>
+                <div class="result-panel">
+                    <div id="rarityLabel"></div>
+                    <div id="priceLabel"></div>
+                    <div id="descLabel"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 2: COLLECTION -->
+        <div id="tab-col" class="tab-content">
+            <div class="glass-panel">
+                <div style="font-size: 14px; margin-bottom: 10px;">Быстрая продажа</div>
+                <div class="mass-sell-tags" id="massSellTags"></div>
+                <button class="btn-full" onclick="sellSelectedRarities()">Продать выбранные редкости</button>
+                <button class="btn-full danger" onclick="sellAllUnprotected()">Продать всё незащищенное</button>
+            </div>
+            <div class="filters">
+                <select id="filterRarity" onchange="renderCollection()"><option value="all">Все редкости</option></select>
+                <select id="sortPrice" onchange="renderCollection()">
+                    <option value="desc">Сначала дорогие</option>
+                    <option value="asc">Сначала дешевые</option>
+                </select>
+            </div>
+            <div class="grid" id="collectionGrid"></div>
+        </div>
+
+        <!-- TAB 3: UPGRADES -->
+        <div id="tab-upg" class="tab-content">
+            <div style="margin-bottom: 20px; color: var(--text-main); font-size: 14px;">Вложите деньги в себя, чтобы зарабатывать больше.</div>
+            <div id="upgradesList"></div>
+        </div>
+
+        <!-- TAB 4: PROFILE -->
+        <div id="tab-prof" class="tab-content">
+            <div class="glass-panel" style="text-align: center; padding: 30px;">
+                <div style="font-size: 50px; margin-bottom: 10px;">💼</div>
+                <div style="color: var(--text-main); font-size: 14px;">Ваш эксклюзивный номер:</div>
+                <div id="profEquipped" style="font-size: 22px; font-family: monospace; font-weight: bold; margin-top: 10px; color: var(--accent);">Нет номера</div>
+            </div>
+            <div class="glass-panel">
+                <h3 style="margin-top:0; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px;">Статистика бизнеса</h3>
+                <div class="stat-item"><span>Генераций:</span><strong id="profTotalGens">0</strong></div>
+                <div class="stat-item"><span>Общий доход:</span><strong id="profTotalEarned" style="color: var(--accent)">0 ₽</strong></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Инициализация Telegram Web App
+        if (window.Telegram && window.Telegram.WebApp) {
+            window.Telegram.WebApp.ready();
+            window.Telegram.WebApp.expand(); // Открыть на весь экран
+        }
+
+        const RARITIES = {
+            common: { id: 'common', name: 'Обычный', color: '#b0bec5', bg: 'linear-gradient(135deg, #37474f, #263238)' },
+            uncommon: { id: 'uncommon', name: 'Необычный', color: '#81c784', bg: 'linear-gradient(135deg, #2e7d32, #1b5e20)' },
+            rare: { id: 'rare', name: 'Редкий', color: '#64b5f6', bg: 'linear-gradient(135deg, #1565c0, #0d47a1)' },
+            epic: { id: 'epic', name: 'Эпический', color: '#ba68c8', bg: 'linear-gradient(135deg, #6a1b9a, #4a148c)' },
+            legendary: { id: 'legendary', name: 'Легендарный', color: '#ffca28', bg: 'linear-gradient(135deg, #ff8f00, #ff6f00)' },
+            mythic: { id: 'mythic', name: 'Мифический', color: '#ff5252', bg: 'linear-gradient(135deg, #d50000, #b71c1c)' }
+        };
+
+        const UPGRADES = {
+            commission: { id: 'commission', name: 'Налоговый вычет', desc: 'Снижает комиссию на 2%', maxLevel: 5, baseCost: 10000, mult: 2.5 },
+            genCost: { id: 'genCost', name: 'Опт-поставщик', desc: 'Снижает цену SIM на 50 ₽', maxLevel: 5, baseCost: 5000, mult: 2 },
+            luck: { id: 'luck', name: 'Связи у оператора', desc: 'Повышает шанс редких номеров', maxLevel: 5, baseCost: 15000, mult: 3 }
+        };
+
+        let state = {
+            balance: 5000, collection: [], equipped: null,
+            stats: { generated: 0, earned: 0 },
+            upgrades: { commission: 0, genCost: 0, luck: 0 },
+            market: { active: false, rarityId: null, mult: 1 }
+        };
+
+        let isAnimating = false; // Блокирует клики ТОЛЬКО для редких анимаций
+        let selectedTags = new Set();
+        let lastToastMsg = "";
+
+        // --- ТОСТЫ ---
+        function showToast(msg, type = 'info') {
+            if (lastToastMsg === msg) {
+                const existing = document.querySelector('.toast:last-child');
+                if (existing) {
+                    existing.classList.remove('pulse'); void existing.offsetWidth; existing.classList.add('pulse'); return;
+                }
+            }
+            lastToastMsg = msg;
+            const container = document.getElementById('toast-container');
+            if (container.children.length >= 2) container.removeChild(container.firstChild);
+
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`; toast.innerText = msg;
+            container.appendChild(toast);
+
+            setTimeout(() => {
+                if(toast.parentElement) toast.parentElement.removeChild(toast);
+                if(lastToastMsg === msg) lastToastMsg = "";
+            }, 2000);
+        }
+
+        // --- ЛОГИКА ---
+        function getGenCost() { return 500 - (state.upgrades.genCost * 50); }
+        function getCommissionPercent() { return 15 - (state.upgrades.commission * 2); }
+        
+        function updateBalanceUI() {
+            document.getElementById('headerBalance').innerText = state.balance.toLocaleString('ru-RU');
+            document.getElementById('genCostHint').innerText = `Стоимость SIM: ${getGenCost()} ₽`;
+        }
+
+        function switchTab(tabId, btn) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.getElementById('tab-' + tabId).classList.add('active');
+            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+            btn.classList.add('active');
+            if (tabId === 'col') renderCollection();
+            if (tabId === 'prof') renderProfile();
+            if (tabId === 'upg') renderUpgrades();
+        }
+
+        function updateMarket() {
+            if (Math.random() < 0.4) {
+                state.market.active = false;
+                document.getElementById('marketTicker').innerHTML = `⚖️ Рынок стабилен | Комиссия: ${getCommissionPercent()}%`;
+                document.getElementById('marketTicker').style.color = 'var(--text-main)';
+            } else {
+                state.market.active = true;
+                const rkeys = Object.keys(RARITIES);
+                state.market.rarityId = rkeys[Math.floor(Math.random() * rkeys.length)];
+                state.market.mult = (Math.random() * 1.5 + 0.5).toFixed(2);
+                let isGood = state.market.mult >= 1;
+                let text = isGood ? `📈 Спрос на ${RARITIES[state.market.rarityId].name} (x${state.market.mult})` 
+                                  : `📉 Падение цен на ${RARITIES[state.market.rarityId].name} (x${state.market.mult})`;
+                document.getElementById('marketTicker').innerHTML = `${text} | Комиссия: ${getCommissionPercent()}%`;
+                document.getElementById('marketTicker').style.color = isGood ? '#81c784' : '#ff5252';
+            }
+            if(document.getElementById('tab-col').classList.contains('active')) renderCollection();
+        }
+        setInterval(updateMarket, 30000);
+
+        function generateNumberFormat(rarityId) {
+            let p = () => Math.floor(Math.random() * 10);
+            let pref = "9" + p() + p();
+            if (rarityId === 'mythic') return `+7 (${pref}) 777-77-77`;
+            if (rarityId === 'legendary') return `+7 (${pref}) ${p()}${p()}7-77-77`;
+            if (rarityId === 'epic') return `+7 (${pref}) ${p()}55-55-22`;
+            if (rarityId === 'rare') return `+7 (${pref}) ${p()}${p()}1-22-33`;
+            if (rarityId === 'uncommon') return `+7 (${pref}) ${p()}${p()}5-44-66`;
+            return `+7 (${pref}) ${p()}${p()}${p()}-${p()}${p()}-${p()}${p()}`;
+        }
+
+        function calculateDynamicData(number, rarityId) {
+            let min, max;
+            if (rarityId === 'mythic') { min = 1500000; max = 3000000; }
+            else if (rarityId === 'legendary') { min = 120000; max = 300000; }
+            else if (rarityId === 'epic') { min = 20000; max = 50000; }
+            else if (rarityId === 'rare') { min = 4000; max = 9000; }
+            else if (rarityId === 'uncommon') { min = 800; max = 2000; }
+            else { min = 100; max = 300; }
+
+            let base = Math.floor(Math.random() * (max - min + 1)) + min;
+            let sevens = (number.match(/7/g) || []).length;
+            let zeros = (number.match(/0/g) || []).length;
+            let bonus = 1 + (sevens * 0.05) + (zeros * 0.03); 
+            
+            let finalPrice = Math.floor(base * bonus);
+            let desc = "";
+            if (rarityId === 'mythic') desc = "Эксклюзив! Безупречная комбинация.";
+            else if (rarityId === 'legendary' || rarityId === 'epic') desc = `Семёрок: ${sevens}, Нулей: ${zeros}. Отличный паттерн.`;
+            else desc = "Красивый номер для бизнеса.";
+            return { basePrice: finalPrice, desc: desc };
+        }
+
+        function getMarketPrice(basePrice, rarityId) {
+            if(state.market.active && state.market.rarityId === rarityId) return Math.floor(basePrice * state.market.mult);
+            return basePrice;
+        }
+
+        function typeWriter(element, text, speed) {
+            element.innerHTML = ''; let i = 0;
+            function type() { if (i < text.length) { element.innerHTML += text.charAt(i); i++; setTimeout(type, speed); } }
+            type();
+        }
+
+        function animateValue(obj, start, end, duration) {
+            let startTimestamp = null;
+            const step = (timestamp) => {
+                if (!startTimestamp) startTimestamp = timestamp;
+                const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+                const easeOut = progress * (2 - progress);
+                obj.innerHTML = Math.floor(easeOut * (end - start) + start).toLocaleString('ru-RU') + ' ₽';
+                if (progress < 1) { window.requestAnimationFrame(step); }
+            };
+            window.requestAnimationFrame(step);
+        }
+
+        // Обработка тапов (чтобы не было конфликта touch/mouse)
+        function handleTouch(e) {
+            e.preventDefault(); // Останавливает эмуляцию mousedown
+            generateSim();
+        }
+
+        function generateSim() {
+            if (isAnimating) return;
+            const cost = getGenCost();
+
+            if (state.balance < cost) {
+                let hasUnprotected = state.collection.some(i => !i.locked && (!state.equipped || state.equipped.id !== i.id));
+                if (!hasUnprotected) {
+                    state.balance += 1000; updateBalanceUI();
+                    showToast('Банкротство! Вы нашли заначку +1000 ₽', 'success'); return;
+                } else {
+                    showToast('Мало денег! Продайте номера.', 'error'); return;
+                }
+            }
+
+            state.balance -= cost; state.stats.generated++; updateBalanceUI();
+
+            let luck = state.upgrades.luck * 0.05; 
+            const rand = Math.random();
+            let rarity;
+            if (rand < 0.001 + (0.001*luck)) rarity = RARITIES.mythic;
+            else if (rand < 0.01 + (0.005*luck)) rarity = RARITIES.legendary;
+            else if (rand < 0.05 + (0.01*luck)) rarity = RARITIES.epic;
+            else if (rand < 0.15 + (0.03*luck)) rarity = RARITIES.rare;
+            else if (rand < 0.35 + (0.05*luck)) rarity = RARITIES.uncommon;
+            else rarity = RARITIES.common;
+
+            const number = generateNumberFormat(rarity.id);
+            const dynamicData = calculateDynamicData(number, rarity.id);
+
+            const newSim = {
+                id: Date.now() + Math.random(),
+                number: number, rarity: rarity, locked: false,
+                baseDynamicPrice: dynamicData.basePrice, desc: dynamicData.desc
+            };
+
+            const card = document.getElementById('simCard');
+            card.style.background = rarity.bg;
+            document.getElementById('simNumber').innerText = newSim.number;
+            document.getElementById('simNumber').style.color = rarity.color;
+            
+            let rLabel = document.getElementById('rarityLabel');
+            rLabel.innerText = rarity.name; rLabel.style.color = rarity.color;
+            
+            let currentMarketPrice = getMarketPrice(newSim.baseDynamicPrice, rarity.id);
+            state.collection.unshift(newSim); 
+
+            // Если редкая - запускаем долгую драматичную анимацию
+            if (['epic', 'legendary', 'mythic'].includes(rarity.id)) {
+                isAnimating = true;
+                card.classList.add('dramatic-glow');
+                document.getElementById('descLabel').innerText = ''; // Очищаем текст
+                
+                // Вибрация (если поддерживается устройством/Telegram)
+                if (window.navigator && window.navigator.vibrate) navigator.vibrate([100, 50, 100]);
+
+                animateValue(document.getElementById('priceLabel'), 0, currentMarketPrice, 1500);
+                setTimeout(() => {
+                    typeWriter(document.getElementById('descLabel'), newSim.desc, 40);
+                    setTimeout(() => { 
+                        isAnimating = false; 
+                        card.classList.remove('dramatic-glow');
+                    }, 1500); // Разблокируем клики после текста
+                }, 1500);
+            } else {
+                // Обычные карточки - МГНОВЕННО, МОЖНО СПАМИТЬ!
+                document.getElementById('priceLabel').innerText = currentMarketPrice.toLocaleString('ru-RU') + ' ₽';
+                document.getElementById('descLabel').innerText = newSim.desc;
+                
+                // Легкая вибрация на клик
+                if (window.navigator && window.navigator.vibrate) navigator.vibrate(10);
+            }
+        }
+
+        // --- ИНВЕНТАРЬ ---
+        function toggleLock(id) {
+            let item = state.collection.find(i => i.id === id);
+            if(item) { item.locked = !item.locked; renderCollection(); }
+        }
+
+        function equipSim(id) {
+            let item = state.collection.find(i => i.id === id);
+            if(item) { state.equipped = item; renderCollection(); showToast('Номер применен', 'success'); }
+        }
+
+        function sellSim(id) {
+            const idx = state.collection.findIndex(i => i.id === id);
+            if (idx === -1) return;
+            const item = state.collection[idx];
+            if (item.locked || (state.equipped && state.equipped.id === id)) { showToast('Номер защищен', 'error'); return; }
+            
+            let mPrice = getMarketPrice(item.baseDynamicPrice, item.rarity.id);
+            let profit = Math.floor(mPrice * (1 - getCommissionPercent()/100));
+            
+            state.balance += profit; state.stats.earned += profit;
+            state.collection.splice(idx, 1);
+            updateBalanceUI(); renderCollection();
+            showToast(`Продано: +${profit.toLocaleString()} ₽`, 'success');
+        }
+
+        function renderCollection() {
+            const grid = document.getElementById('collectionGrid');
+            grid.innerHTML = '';
+            
+            let items = [...state.collection];
+            const filterR = document.getElementById('filterRarity').value;
+            if (filterR !== 'all') items = items.filter(i => i.rarity.id === filterR);
+
+            const sortP = document.getElementById('sortPrice').value;
+            items.sort((a, b) => {
+                let pa = getMarketPrice(a.baseDynamicPrice, a.rarity.id);
+                let pb = getMarketPrice(b.baseDynamicPrice, b.rarity.id);
+                return sortP === 'desc' ? pb - pa : pa - pb;
+            });
+
+            if(items.length === 0) {
+                grid.innerHTML = '<div style="grid-column:1/-1; text-align:center; color:#777; padding:20px;">Сейф пуст</div>'; return;
+            }
+
+            items.forEach(item => {
+                const isEq = state.equipped && state.equipped.id === item.id;
+                let mPrice = getMarketPrice(item.baseDynamicPrice, item.rarity.id);
+                let profit = Math.floor(mPrice * (1 - getCommissionPercent()/100));
+                let commLost = mPrice - profit;
+
+                const div = document.createElement('div');
+                div.className = 'card'; div.style.borderTopColor = item.rarity.color;
+                
+                div.innerHTML = `
+                    <div class="lock-icon ${item.locked ? 'locked' : ''}" onclick="toggleLock(${item.id})">${item.locked ? '🔒' : '🔓'}</div>
+                    <div class="card-num" style="color: ${item.rarity.color};">${item.number}</div>
+                    <div style="font-size: 10px; text-transform: uppercase; margin-bottom:10px; color:${item.rarity.color}">${item.rarity.name}</div>
+                    <div class="card-price">+${profit.toLocaleString()} ₽</div>
+                    <div class="card-commission">Комс: -${commLost.toLocaleString()} ₽</div>
+                    <div class="card-actions">
+                        <button class="btn-equip" onclick="equipSim(${item.id})" ${isEq ? 'disabled style="background:#555"' : ''}>${isEq ? 'АКТИВЕН' : 'НАДЕТЬ'}</button>
+                        <button class="btn-sell" onclick="sellSim(${item.id})" ${(item.locked || isEq) ? 'disabled style="background:#555"' : ''}>ПРОДАТЬ</button>
+                    </div>
+                `;
+                grid.appendChild(div);
+            });
+        }
+
+        // --- МАССОВАЯ ПРОДАЖА ---
+        function initMassSellTags() {
+            const container = document.getElementById('massSellTags');
+            const filterDrop = document.getElementById('filterRarity');
+            container.innerHTML = '';
+            
+            Object.values(RARITIES).forEach(r => {
+                let tag = document.createElement('div');
+                tag.className = 'sell-tag'; tag.innerText = r.name;
+                tag.onclick = () => {
+                    if(selectedTags.has(r.id)) { selectedTags.delete(r.id); tag.classList.remove('active'); tag.style.color = ''; }
+                    else { selectedTags.add(r.id); tag.classList.add('active'); tag.style.color = r.color; }
+                };
+                container.appendChild(tag);
+                filterDrop.innerHTML += `<option value="${r.id}">${r.name}</option>`;
+            });
+        }
+
+        function sellSelectedRarities() {
+            if(selectedTags.size === 0) { showToast('Выберите редкости!', 'error'); return; }
+            processBulkSell(item => selectedTags.has(item.rarity.id));
+        }
+
+        function sellAllUnprotected() { processBulkSell(() => true); }
+
+        function processBulkSell(conditionFn) {
+            let totalEarned = 0, count = 0, toKeep = [];
+            state.collection.forEach(item => {
+                let isEq = state.equipped && state.equipped.id === item.id;
+                if (!item.locked && !isEq && conditionFn(item)) {
+                    let mPrice = getMarketPrice(item.baseDynamicPrice, item.rarity.id);
+                    totalEarned += Math.floor(mPrice * (1 - getCommissionPercent()/100));
+                    count++;
+                } else { toKeep.push(item); }
+            });
+            if (count > 0) {
+                state.balance += totalEarned; state.stats.earned += totalEarned; state.collection = toKeep;
+                updateBalanceUI(); renderCollection();
+                showToast(`Продано ${count} шт. на ${totalEarned.toLocaleString()} ₽`, 'success');
+            } else { showToast('Нечего продавать (защищено или пусто)', 'error'); }
+        }
+
+        // --- ПРОКАЧКА ---
+        function buyUpgrade(upgKey) {
+            let upg = UPGRADES[upgKey];
+            let lvl = state.upgrades[upgKey];
+            let cost = Math.floor(upg.baseCost * Math.pow(upg.mult, lvl));
+            
+            if (state.balance >= cost && lvl < upg.maxLevel) {
+                state.balance -= cost; state.upgrades[upgKey]++;
+                updateBalanceUI(); renderUpgrades(); updateMarket();
+                showToast('Навык улучшен!', 'success');
+            } else { showToast('Мало денег или макс. уровень', 'error'); }
+        }
+
+        function renderUpgrades() {
+            const list = document.getElementById('upgradesList');
+            list.innerHTML = '';
+            for(let key in UPGRADES) {
+                let upg = UPGRADES[key]; let lvl = state.upgrades[key];
+                let cost = Math.floor(upg.baseCost * Math.pow(upg.mult, lvl));
+                let isMax = lvl >= upg.maxLevel;
+                
+                list.innerHTML += `
+                    <div class="upgrade-card">
+                        <div>
+                            <div style="font-weight:bold; margin-bottom:5px;">${upg.name}</div>
+                            <div style="font-size:12px; color:#aaa;">${upg.desc}</div>
+                            <div style="font-size:12px; color:var(--accent); margin-top:5px;">Уровень: ${lvl}/${upg.maxLevel}</div>
+                        </div>
+                        <button class="btn-upg" onclick="buyUpgrade('${key}')" ${isMax || state.balance < cost ? 'disabled' : ''}>
+                            ${isMax ? 'МАКС' : cost.toLocaleString() + ' ₽'}
+                        </button>
+                    </div>
+                `;
+            }
+        }
+
+        // --- ПРОФИЛЬ ---
+        function renderProfile() {
+            const profEq = document.getElementById('profEquipped');
+            if (state.equipped) {
+                profEq.innerText = state.equipped.number; profEq.style.color = state.equipped.rarity.color;
+            } else {
+                profEq.innerText = "Нет номера"; profEq.style.color = "var(--text-main)";
+            }
+            document.getElementById('profTotalGens').innerText = state.stats.generated;
+            document.getElementById('profTotalEarned').innerText = state.stats.earned.toLocaleString('ru-RU') + ' ₽';
+        }
+
+        updateMarket(); updateBalanceUI(); initMassSellTags();
+    </script>
+</body>
+</html>
