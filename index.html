@@ -87,11 +87,29 @@
         .tab-content.active { display: block; animation: fadeIn 0.3s; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-        .generator-container { display: flex; flex-direction: column; align-items: center; }
+        .generator-container { display: flex; flex-direction: column; align-items: center; position: relative; }
+        
+        /* Анимация пропущенных карт */
+        #history-container {
+            position: absolute; top: -50px; width: 100%; height: 150px;
+            pointer-events: none; display: flex; flex-direction: column; align-items: center; z-index: 10;
+        }
+        .skipped-item {
+            position: absolute; display: flex; flex-direction: column; align-items: center;
+            animation: flyUp 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+            opacity: 0.5; transform: scale(0.7);
+        }
+        .skipped-label { font-size: 10px; color: var(--text-main); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 5px; }
+        @keyframes flyUp {
+            0% { transform: translateY(50px) scale(0.85); opacity: 1; }
+            100% { transform: translateY(-100px) scale(0.6); opacity: 0; }
+        }
+
         .sim-wrapper {
             margin-bottom: 20px; cursor: pointer;
             filter: drop-shadow(0 15px 25px rgba(0,0,0,0.6));
             -webkit-tap-highlight-color: transparent;
+            z-index: 20;
         }
         .sim-card {
             width: 220px; height: 340px;
@@ -102,7 +120,7 @@
             transition: transform 0.1s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.1s;
         }
         
-        /* НОВАЯ АНИМАЦИЯ НАЖАТИЯ (Управляется через JS) */
+        /* Анимация нажатия */
         .sim-card.pressed {
             transform: scale(0.92) !important;
             box-shadow: inset 0 0 20px rgba(0,0,0,0.8) !important;
@@ -267,6 +285,7 @@
     <div class="content">
         <div id="tab-gen" class="tab-content active">
             <div class="generator-container">
+                <div id="history-container"></div>
                 <div class="sim-wrapper" id="simWrapper" onmousedown="generateSim()" ontouchstart="handleTouch(event)">
                     <div class="sim-card" id="simCard">
                         <div class="sim-chip"></div>
@@ -378,12 +397,14 @@
             mythic: { id: 'mythic', name: 'Мифический', color: '#ff5252', bg: 'linear-gradient(135deg, #d50000, #b71c1c)' }
         };
 
+        const CAPACITY_LEVELS = [20, 100, 250, 500, 750, 1000];
+
         const UPGRADES = {
-            capacity: { id: 'capacity', name: 'Сервер хранения', desc: 'Увеличивает вместимость коллекции на 10', maxLevel: 10, baseCost: 2000, mult: 1.5 },
-            luck: { id: 'luck', name: 'Связи у оператора', desc: 'Повышает шанс редких номеров', maxLevel: 5, baseCost: 15000, mult: 3 }
+            capacity: { id: 'capacity', name: 'Сервер хранения', desc: 'Увеличивает вместимость сейфа', maxLevel: 5, baseCost: 10000, mult: 3.5 },
+            luck: { id: 'luck', name: 'Связи у оператора', desc: 'Повышает шанс редких номеров', maxLevel: 5, baseCost: 30000, mult: 4 }
         };
 
-        const SAVE_KEY = 'simgacha_save_v4';
+        const SAVE_KEY = 'simgacha_save_v7';
         const defaultState = {
             balance: 5000, collection: [], equipped: null,
             stats: { 
@@ -399,7 +420,6 @@
         let savedData = localStorage.getItem(SAVE_KEY);
         let state = savedData ? JSON.parse(savedData) : JSON.parse(JSON.stringify(defaultState));
         
-        // Миграция старых сейвов
         if(!state.stats.rarities) state.stats.rarities = { common: 0, uncommon: 0, rare: 0, epic: 0, legendary: 0, mythic: 0 };
         if(!state.stats.patterns) state.stats.patterns = { diamond: 0, platinum: 0, flash: 0, kare: 0, butterfly: 0, doublePair: 0, zeros: 0 };
         if(!state.settings) state.settings = { fastMode: false, color: '#66fcf1' };
@@ -412,10 +432,12 @@
             }
         }
 
-        let isAnimating = false;
+        // --- НОВЫЙ МЕХАНИЗМ АБОРТА АНИМАЦИЙ ПРИ СПАМЕ ---
+        let currentGenId = 0; // ID текущей генерации
         let selectedTags = new Set();
         let lastToastMsg = "";
         let currentModalItemId = null; 
+        let lastGeneratedSim = null; 
 
         document.documentElement.style.setProperty('--accent', state.settings.color);
         document.getElementById('animToggle').checked = state.settings.fastMode;
@@ -453,7 +475,9 @@
             setTimeout(() => { if(toast.parentElement) toast.parentElement.removeChild(toast); if(lastToastMsg === msg) lastToastMsg = ""; }, 2000);
         }
 
-        function getMaxCapacity() { return 20 + (state.upgrades.capacity * 10); }
+        function getMaxCapacity() { 
+            return CAPACITY_LEVELS[state.upgrades.capacity] || CAPACITY_LEVELS[CAPACITY_LEVELS.length - 1]; 
+        }
         function getGenCost() { return 500; } 
         function getCommissionPercent() { return 15; } 
         
@@ -544,30 +568,75 @@
             return basePrice;
         }
 
-        function typeWriter(element, text, speed) {
+        // Печатает текст. Прерывается, если начата новая генерация.
+        function typeWriter(element, text, speed, genId) {
             element.innerHTML = ''; let i = 0;
-            function type() { if (i < text.length) { element.innerHTML += text.charAt(i); i++; setTimeout(type, speed); } }
+            function type() { 
+                if (currentGenId !== genId) return; // ПРЕРЫВАЕМ если был новый клик
+                if (i < text.length) { 
+                    element.innerHTML += text.charAt(i); 
+                    i++; 
+                    setTimeout(type, speed); 
+                } 
+            }
             type();
         }
-        function animateValue(obj, start, end, duration) {
+
+        // Анимация рулетки. Прерывается, если начата новая генерация.
+        function spinSlotAnimation(priceEl, numEl, finalPrice, finalNum, finalColor, duration, genId) {
             let startTimestamp = null;
             const step = (timestamp) => {
+                if (currentGenId !== genId) return; // ПРЕРЫВАЕМ если был новый клик
+
                 if (!startTimestamp) startTimestamp = timestamp;
                 const progress = Math.min((timestamp - startTimestamp) / duration, 1);
-                const easeOut = progress * (2 - progress);
-                obj.innerHTML = Math.floor(easeOut * (end - start) + start).toLocaleString('ru-RU') + ' ₽';
-                if (progress < 1) { window.requestAnimationFrame(step); }
+                
+                const easeOut = progress * (2 - progress); 
+                let currentPrice = Math.floor(easeOut * finalPrice);
+                priceEl.innerText = currentPrice.toLocaleString('ru-RU') + ' ₽';
+                
+                if (progress < 1) {
+                    let p = () => Math.floor(Math.random() * 10);
+                    numEl.innerText = `+7 (9${p()}${p()}) ${p()}${p()}${p()}-${p()}${p()}-${p()}${p()}`;
+                    numEl.style.color = '#777'; 
+                    window.requestAnimationFrame(step);
+                } else {
+                    priceEl.innerText = finalPrice.toLocaleString('ru-RU') + ' ₽';
+                    numEl.innerText = finalNum;
+                    numEl.style.color = finalColor;
+                }
             };
             window.requestAnimationFrame(step);
+        }
+
+        function spawnSkippedAnimation(simData) {
+            if(!simData) return;
+            const container = document.getElementById('history-container');
+            const el = document.createElement('div');
+            el.className = 'skipped-item';
+            
+            el.innerHTML = `
+                <div class="skipped-label">Пропущено</div>
+                <div style="background: linear-gradient(135deg, #2a2a35, #1a1a25); border: 1px solid rgba(255,255,255,0.05); padding: 10px 15px; border-radius: 10px; text-align: center;">
+                    <div style="font-size: 10px; color: ${simData.rarity.color}; margin-bottom: 3px;">${simData.rarity.name}</div>
+                    <div style="font-family: monospace; font-size: 14px; font-weight: bold; color: #fff;">${simData.number}</div>
+                    <div style="font-size: 12px; color: var(--text-main); margin-top: 3px; opacity: 0.7;">${getMarketPrice(simData.baseDynamicPrice, simData.rarity.id).toLocaleString()} ₽</div>
+                </div>
+            `;
+            container.appendChild(el);
+            setTimeout(() => { if(el.parentNode) el.remove(); }, 600);
         }
 
         function handleTouch(e) { e.preventDefault(); generateSim(); }
 
         function generateSim() {
-            if (isAnimating) return;
+            // УДАЛЕНА БЛОКИРОВКА КЛИКА (isAnimating)! Теперь можно спамить.
+            currentGenId++;
+            const thisGenId = currentGenId;
             
-            // Запускаем CSS анимацию нажатия для всех устройств через JS
             const card = document.getElementById('simCard');
+            card.classList.remove('dramatic-glow'); // Сбрасываем свечение прошлой карты
+
             card.classList.add('pressed');
             setTimeout(() => card.classList.remove('pressed'), 100);
 
@@ -589,16 +658,22 @@
 
             state.balance -= cost; state.stats.generated++; updateBalanceUI();
 
+            // Предыдущая карта улетает
+            if (lastGeneratedSim) spawnSkippedAnimation(lastGeneratedSim);
+
             let luck = state.upgrades.luck * 0.01; 
             const rand = Math.random();
-            let rarity;
+            let rIdx;
             
-            if (rand < 0.0001 + (0.0001 * luck)) rarity = RARITIES.mythic; 
-            else if (rand < 0.002 + (0.001 * luck)) rarity = RARITIES.legendary; 
-            else if (rand < 0.015 + (0.005 * luck)) rarity = RARITIES.epic; 
-            else if (rand < 0.10 + (0.02 * luck)) rarity = RARITIES.rare; 
-            else if (rand < 0.35 + (0.05 * luck)) rarity = RARITIES.uncommon; 
-            else rarity = RARITIES.common; 
+            if (rand < 0.0001 + (0.0001 * luck)) rIdx = 5; 
+            else if (rand < 0.002 + (0.001 * luck)) rIdx = 4; 
+            else if (rand < 0.015 + (0.005 * luck)) rIdx = 3; 
+            else if (rand < 0.10 + (0.02 * luck)) rIdx = 2; 
+            else if (rand < 0.35 + (0.05 * luck)) rIdx = 1; 
+            else rIdx = 0; 
+
+            let rarityId = Object.keys(RARITIES)[rIdx];
+            let rarity = RARITIES[rarityId];
 
             state.stats.rarities[rarity.id] = (state.stats.rarities[rarity.id] || 0) + 1;
 
@@ -615,10 +690,9 @@
                 baseDynamicPrice: dynamicData.basePrice, desc: dynamicData.desc, bonus: dynamicData.bonus
             };
 
+            lastGeneratedSim = newSim; 
+
             card.style.background = rarity.bg;
-            document.getElementById('simNumber').innerText = newSim.number;
-            document.getElementById('simNumber').style.color = rarity.color;
-            
             let rLabel = document.getElementById('rarityLabel');
             rLabel.innerText = rarity.name; rLabel.style.color = rarity.color;
             
@@ -627,25 +701,48 @@
             
             saveGame(); updateBalanceUI();
 
-            if (!state.settings.fastMode && ['epic', 'legendary', 'mythic'].includes(rarity.id)) {
-                isAnimating = true;
-                card.classList.add('dramatic-glow');
+            if (!state.settings.fastMode) {
+                let isRare = rIdx >= 3;
+                let duration = isRare ? 1500 : 400; 
+                
+                if (isRare) card.classList.add('dramatic-glow');
                 document.getElementById('descLabel').innerText = ''; 
-                if (window.navigator && window.navigator.vibrate) navigator.vibrate([100, 50, 100]);
+                if (window.navigator && window.navigator.vibrate) navigator.vibrate(isRare ? [100, 50, 100] : 10);
 
-                animateValue(document.getElementById('priceLabel'), 0, currentMarketPrice, 1500);
+                // Запускаем анимацию, передаем ID текущей генерации
+                spinSlotAnimation(
+                    document.getElementById('priceLabel'), 
+                    document.getElementById('simNumber'), 
+                    currentMarketPrice, 
+                    newSim.number, 
+                    rarity.color, 
+                    duration,
+                    thisGenId
+                );
+
                 setTimeout(() => {
-                    typeWriter(document.getElementById('descLabel'), newSim.desc, 40);
-                    setTimeout(() => { isAnimating = false; card.classList.remove('dramatic-glow'); }, 1500);
-                }, 1500);
+                    if (currentGenId !== thisGenId) return; // ПРЕРЫВАЕМ если был новый клик
+
+                    if (isRare) {
+                        typeWriter(document.getElementById('descLabel'), newSim.desc, 30, thisGenId);
+                        setTimeout(() => { 
+                            if (currentGenId !== thisGenId) return;
+                            card.classList.remove('dramatic-glow'); 
+                        }, 1000);
+                    } else {
+                        document.getElementById('descLabel').innerText = newSim.desc;
+                    }
+                }, duration);
             } else {
+                document.getElementById('simNumber').innerText = newSim.number;
+                document.getElementById('simNumber').style.color = rarity.color;
                 document.getElementById('priceLabel').innerText = currentMarketPrice.toLocaleString('ru-RU') + ' ₽';
                 document.getElementById('descLabel').innerText = newSim.desc;
                 if (window.navigator && window.navigator.vibrate) navigator.vibrate(10);
             }
         }
 
-        // --- МОДАЛЬНОЕ ОКНО ДЛЯ НОМЕРОВ ---
+        // --- МОДАЛЬНОЕ ОКНО ДЛЯ НОМЕРА ---
         function openModal(id) {
             const item = state.collection.find(i => i.id === id);
             if(!item) return;
@@ -810,11 +907,16 @@
                 let cost = Math.floor(upg.baseCost * Math.pow(upg.mult, lvl));
                 let isMax = lvl >= upg.maxLevel;
                 
+                let descText = upg.desc;
+                if (key === 'capacity' && !isMax) {
+                    descText = `Вместимость: ${CAPACITY_LEVELS[lvl]} ➔ ${CAPACITY_LEVELS[lvl+1]} мест`;
+                }
+
                 list.innerHTML += `
                     <div class="upgrade-card">
                         <div>
                             <div style="font-weight:bold; margin-bottom:5px;">${upg.name}</div>
-                            <div style="font-size:12px; color:#aaa;">${upg.desc}</div>
+                            <div style="font-size:12px; color:#aaa;">${descText}</div>
                             <div style="font-size:12px; color:var(--accent); margin-top:5px;">Уровень: ${lvl}/${upg.maxLevel}</div>
                         </div>
                         <button class="btn-upg" onclick="buyUpgrade('${key}')" ${isMax || state.balance < cost ? 'disabled' : ''}>
