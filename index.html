@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Premium SIM Gacha</title>
-    <!-- Подключение Telegram Web App SDK -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         :root {
@@ -27,17 +26,15 @@
             display: flex; flex-direction: column;
             height: 100vh;
             
-            /* ЗАЩИТА ОТ ВЫДЕЛЕНИЯ ТЕКСТА ПРИ СПАМЕ */
             -webkit-user-select: none;
             -khtml-user-select: none;
             -moz-user-select: none;
             -ms-user-select: none;
             user-select: none;
             -webkit-touch-callout: none;
-            touch-action: manipulation; /* Блокирует двойной тап для зума */
+            touch-action: manipulation;
         }
 
-        /* Glassmorphism Navigation */
         .top-nav {
             position: fixed;
             top: 15px; left: 50%; transform: translateX(-50%);
@@ -60,20 +57,17 @@
             background: var(--accent); color: #000; box-shadow: 0 0 10px var(--accent);
         }
 
-        /* Market Ticker */
         #marketTicker {
             position: fixed; top: 70px; width: 100%;
             text-align: center; font-size: 11px; color: var(--accent);
             text-transform: uppercase; letter-spacing: 1px; z-index: 90;
         }
 
-        /* Balance Info */
         .balance-info {
             position: fixed; top: 95px; width: 100%; text-align: center; z-index: 90;
         }
         .balance-val { font-size: 28px; font-weight: bold; color: #ffd700; text-shadow: 0 0 10px rgba(255,215,0,0.5); }
 
-        /* Toasts */
         #toast-container {
             position: fixed; top: 150px; left: 50%; transform: translateX(-50%);
             display: flex; flex-direction: column; align-items: center; gap: 10px;
@@ -89,18 +83,16 @@
         .toast.pulse { transform: scale(1.05); transition: 0.1s; }
         @keyframes slideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* Content Area */
         .content { flex: 1; overflow-y: auto; padding: 180px 20px 20px 20px; }
         .tab-content { display: none; }
         .tab-content.active { display: block; animation: fadeIn 0.3s; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-        /* SIM Card (Generator) - БЕЗ 3D ПЕРЕВОРОТА */
         .generator-container { display: flex; flex-direction: column; align-items: center; }
         .sim-wrapper {
             margin-bottom: 20px; cursor: pointer;
             filter: drop-shadow(0 15px 25px rgba(0,0,0,0.6));
-            -webkit-tap-highlight-color: transparent; /* Убирает синий квадрат при клике на смартфонах */
+            -webkit-tap-highlight-color: transparent;
         }
         .sim-card {
             width: 220px; height: 340px;
@@ -111,7 +103,6 @@
             transition: transform 0.1s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.1s;
         }
         
-        /* ЭФФЕКТ НАЖАТИЯ ДЛЯ СПАМА */
         .sim-wrapper:active .sim-card {
             transform: scale(0.92);
             box-shadow: inset 0 0 20px rgba(0,0,0,0.5);
@@ -148,7 +139,6 @@
         #priceLabel { font-size: 18px; color: #ffd700; font-weight: bold; font-family: monospace; }
         #descLabel { font-size: 12px; color: var(--text-main); margin-top: 5px; font-style: italic; min-height: 15px;}
 
-        /* Collection & Mass Sell */
         .glass-panel {
             background: var(--glass-bg); border: 1px solid var(--glass-border);
             border-radius: 15px; padding: 15px; margin-bottom: 20px; backdrop-filter: blur(10px);
@@ -187,7 +177,6 @@
         .lock-icon { position: absolute; top: 10px; right: 10px; font-size: 16px; cursor: pointer; opacity: 0.4; transition: 0.2s; padding: 5px;}
         .lock-icon.locked { opacity: 1; }
 
-        /* Upgrades & Profile */
         .upgrade-card {
             background: rgba(255,255,255,0.02); border: 1px solid var(--glass-border); border-radius: 12px;
             padding: 15px; margin-bottom: 15px; border-left: 4px solid var(--accent);
@@ -211,14 +200,14 @@
 
     <div id="marketTicker">⚖️ Рынок стабилен</div>
     <div class="balance-info">
-        <div class="balance-val"><span id="headerBalance">5 000</span> ₽</div>
+        <div class="balance-val"><span id="headerBalance">0</span> ₽</div>
         <div id="genCostHint" style="font-size:12px; color:var(--text-main); margin-top:5px;">Стоимость SIM: 500 ₽</div>
     </div>
 
     <div id="toast-container"></div>
 
     <div class="content">
-        <!-- TAB 1: GENERATOR -->
+        <!-- ТАБ 1: ГЕНЕРАТОР -->
         <div id="tab-gen" class="tab-content active">
             <div class="generator-container">
                 <div class="sim-wrapper" id="simWrapper" onmousedown="generateSim()" ontouchstart="handleTouch(event)">
@@ -237,7 +226,7 @@
             </div>
         </div>
 
-        <!-- TAB 2: COLLECTION -->
+        <!-- ТАБ 2: КОЛЛЕКЦИЯ -->
         <div id="tab-col" class="tab-content">
             <div class="glass-panel">
                 <div style="font-size: 14px; margin-bottom: 10px;">Быстрая продажа</div>
@@ -255,13 +244,13 @@
             <div class="grid" id="collectionGrid"></div>
         </div>
 
-        <!-- TAB 3: UPGRADES -->
+        <!-- ТАБ 3: ПРОКАЧКА -->
         <div id="tab-upg" class="tab-content">
             <div style="margin-bottom: 20px; color: var(--text-main); font-size: 14px;">Вложите деньги в себя, чтобы зарабатывать больше.</div>
             <div id="upgradesList"></div>
         </div>
 
-        <!-- TAB 4: PROFILE -->
+        <!-- ТАБ 4: ПРОФИЛЬ -->
         <div id="tab-prof" class="tab-content">
             <div class="glass-panel" style="text-align: center; padding: 30px;">
                 <div style="font-size: 50px; margin-bottom: 10px;">💼</div>
@@ -273,14 +262,14 @@
                 <div class="stat-item"><span>Генераций:</span><strong id="profTotalGens">0</strong></div>
                 <div class="stat-item"><span>Общий доход:</span><strong id="profTotalEarned" style="color: var(--accent)">0 ₽</strong></div>
             </div>
+            <button class="btn-full danger" style="margin-top: 20px;" onclick="resetProgress()">Сбросить весь прогресс (Удалить сохранение)</button>
         </div>
     </div>
 
     <script>
-        // Инициализация Telegram Web App
         if (window.Telegram && window.Telegram.WebApp) {
             window.Telegram.WebApp.ready();
-            window.Telegram.WebApp.expand(); // Открыть на весь экран
+            window.Telegram.WebApp.expand();
         }
 
         const RARITIES = {
@@ -298,24 +287,33 @@
             luck: { id: 'luck', name: 'Связи у оператора', desc: 'Повышает шанс редких номеров', maxLevel: 5, baseCost: 15000, mult: 3 }
         };
 
-        let state = {
+        const SAVE_KEY = 'simgacha_save_v2';
+        const defaultState = {
             balance: 5000, collection: [], equipped: null,
             stats: { generated: 0, earned: 0 },
             upgrades: { commission: 0, genCost: 0, luck: 0 },
             market: { active: false, rarityId: null, mult: 1 }
         };
 
-        let isAnimating = false; // Блокирует клики ТОЛЬКО для редких анимаций
+        let savedData = localStorage.getItem(SAVE_KEY);
+        let state = savedData ? JSON.parse(savedData) : JSON.parse(JSON.stringify(defaultState));
+
+        function saveGame() { localStorage.setItem(SAVE_KEY, JSON.stringify(state)); }
+
+        function resetProgress() {
+            if (confirm("Вы уверены? Это удалит все ваши деньги и собранные номера навсегда!")) {
+                localStorage.removeItem(SAVE_KEY); location.reload();
+            }
+        }
+
+        let isAnimating = false;
         let selectedTags = new Set();
         let lastToastMsg = "";
 
-        // --- ТОСТЫ ---
         function showToast(msg, type = 'info') {
             if (lastToastMsg === msg) {
                 const existing = document.querySelector('.toast:last-child');
-                if (existing) {
-                    existing.classList.remove('pulse'); void existing.offsetWidth; existing.classList.add('pulse'); return;
-                }
+                if (existing) { existing.classList.remove('pulse'); void existing.offsetWidth; existing.classList.add('pulse'); return; }
             }
             lastToastMsg = msg;
             const container = document.getElementById('toast-container');
@@ -325,13 +323,9 @@
             toast.className = `toast ${type}`; toast.innerText = msg;
             container.appendChild(toast);
 
-            setTimeout(() => {
-                if(toast.parentElement) toast.parentElement.removeChild(toast);
-                if(lastToastMsg === msg) lastToastMsg = "";
-            }, 2000);
+            setTimeout(() => { if(toast.parentElement) toast.parentElement.removeChild(toast); if(lastToastMsg === msg) lastToastMsg = ""; }, 2000);
         }
 
-        // --- ЛОГИКА ---
         function getGenCost() { return 500 - (state.upgrades.genCost * 50); }
         function getCommissionPercent() { return 15 - (state.upgrades.commission * 2); }
         
@@ -366,21 +360,42 @@
                 document.getElementById('marketTicker').innerHTML = `${text} | Комиссия: ${getCommissionPercent()}%`;
                 document.getElementById('marketTicker').style.color = isGood ? '#81c784' : '#ff5252';
             }
+            saveGame(); 
             if(document.getElementById('tab-col').classList.contains('active')) renderCollection();
         }
         setInterval(updateMarket, 30000);
 
+        // --- НОВЫЙ АЛГОРИТМ ГЕНЕРАЦИИ ---
         function generateNumberFormat(rarityId) {
             let p = () => Math.floor(Math.random() * 10);
             let pref = "9" + p() + p();
-            if (rarityId === 'mythic') return `+7 (${pref}) 777-77-77`;
-            if (rarityId === 'legendary') return `+7 (${pref}) ${p()}${p()}7-77-77`;
-            if (rarityId === 'epic') return `+7 (${pref}) ${p()}55-55-22`;
-            if (rarityId === 'rare') return `+7 (${pref}) ${p()}${p()}1-22-33`;
-            if (rarityId === 'uncommon') return `+7 (${pref}) ${p()}${p()}5-44-66`;
-            return `+7 (${pref}) ${p()}${p()}${p()}-${p()}${p()}-${p()}${p()}`;
+            
+            if (rarityId === 'mythic') return `+7 (${pref}) 777-77-77`; // 7 одинаковых
+            
+            if (rarityId === 'legendary') {
+                let d = p();
+                return `+7 (${pref}) ${p()}${d}${d}-${d}${d}-${d}${p()}`; // 5 одинаковых подряд (Флеш)
+            }
+            
+            if (rarityId === 'epic') {
+                let d = p();
+                return `+7 (${pref}) ${p()}${d}${d}-${d}${d}-${p()}${p()}`; // 4 одинаковых подряд (Каре)
+            }
+            
+            if (rarityId === 'rare') {
+                let d1 = p(), d2 = p(), d3 = p();
+                return `+7 (${pref}) ${p()}${d1}${d1}-${d2}${d2}-${d3}${d3}`; // 3 пары (Тройная бабочка)
+            }
+            
+            if (rarityId === 'uncommon') {
+                let d1 = p(), d2 = p();
+                return `+7 (${pref}) ${p()}${p()}${p()}-${d1}${d1}-${d2}${d2}`; // 2 пары
+            }
+            
+            return `+7 (${pref}) ${p()}${p()}${p()}-${p()}${p()}-${p()}${p()}`; // Обычный рандом
         }
 
+        // --- НОВЫЙ УМНЫЙ АНАЛИЗАТОР ПАТТЕРНОВ ---
         function calculateDynamicData(number, rarityId) {
             let min, max;
             if (rarityId === 'mythic') { min = 1500000; max = 3000000; }
@@ -391,15 +406,47 @@
             else { min = 100; max = 300; }
 
             let base = Math.floor(Math.random() * (max - min + 1)) + min;
-            let sevens = (number.match(/7/g) || []).length;
-            let zeros = (number.match(/0/g) || []).length;
-            let bonus = 1 + (sevens * 0.05) + (zeros * 0.03); 
             
+            let clean = number.replace(/\D/g, ''); 
+            let tail = clean.slice(-7); // Берем последние 7 цифр
+            
+            let desc = "Красивый номер для бизнеса";
+            let bonus = 1.0;
+
+            if (/(.)\1{6}/.test(tail)) {
+                desc = "👑 Бриллиант (7 одинаковых цифр)";
+                bonus = 3.0;
+            } else if (/(.)\1{5}/.test(tail)) {
+                desc = "💎 Платина (6 цифр подряд)";
+                bonus = 2.0;
+            } else if (/(.)\1{4}/.test(tail)) {
+                let d = tail.match(/(.)\1{4}/)[1];
+                desc = `✨ Флеш: Пять «${d}» подряд`;
+                bonus = 1.5;
+            } else if (/(.)\1{3}/.test(tail)) {
+                let d = tail.match(/(.)\1{3}/)[1];
+                desc = `🃏 Каре из «${d}» (4 подряд)`;
+                bonus = 1.25;
+            } else if (/(.)\1(.)\2(.)\3/.test(tail)) {
+                desc = "🎲 Тройная пара (Бабочка)";
+                bonus = 1.2;
+            } else if (/(.)\1.*(.)\2/.test(tail)) {
+                desc = "🎭 Двойная пара";
+                bonus = 1.1;
+            } else if (/000$/.test(tail)) {
+                desc = "🎯 Ровный: Три нуля на конце";
+                bonus = 1.15;
+            } else {
+                let sevens = (number.match(/7/g) || []).length;
+                if (sevens >= 3) {
+                    desc = `🍀 Счастливый (${sevens} семёрок)`;
+                    bonus = 1.1;
+                } else if (rarityId === 'common' || rarityId === 'uncommon') {
+                    desc = "Стандартный номер";
+                }
+            }
+
             let finalPrice = Math.floor(base * bonus);
-            let desc = "";
-            if (rarityId === 'mythic') desc = "Эксклюзив! Безупречная комбинация.";
-            else if (rarityId === 'legendary' || rarityId === 'epic') desc = `Семёрок: ${sevens}, Нулей: ${zeros}. Отличный паттерн.`;
-            else desc = "Красивый номер для бизнеса.";
             return { basePrice: finalPrice, desc: desc };
         }
 
@@ -426,11 +473,7 @@
             window.requestAnimationFrame(step);
         }
 
-        // Обработка тапов (чтобы не было конфликта touch/mouse)
-        function handleTouch(e) {
-            e.preventDefault(); // Останавливает эмуляцию mousedown
-            generateSim();
-        }
+        function handleTouch(e) { e.preventDefault(); generateSim(); }
 
         function generateSim() {
             if (isAnimating) return;
@@ -439,7 +482,7 @@
             if (state.balance < cost) {
                 let hasUnprotected = state.collection.some(i => !i.locked && (!state.equipped || state.equipped.id !== i.id));
                 if (!hasUnprotected) {
-                    state.balance += 1000; updateBalanceUI();
+                    state.balance += 1000; updateBalanceUI(); saveGame();
                     showToast('Банкротство! Вы нашли заначку +1000 ₽', 'success'); return;
                 } else {
                     showToast('Мало денег! Продайте номера.', 'error'); return;
@@ -448,15 +491,16 @@
 
             state.balance -= cost; state.stats.generated++; updateBalanceUI();
 
-            let luck = state.upgrades.luck * 0.05; 
+            let luck = state.upgrades.luck * 0.01; 
             const rand = Math.random();
             let rarity;
-            if (rand < 0.001 + (0.001*luck)) rarity = RARITIES.mythic;
-            else if (rand < 0.01 + (0.005*luck)) rarity = RARITIES.legendary;
-            else if (rand < 0.05 + (0.01*luck)) rarity = RARITIES.epic;
-            else if (rand < 0.15 + (0.03*luck)) rarity = RARITIES.rare;
-            else if (rand < 0.35 + (0.05*luck)) rarity = RARITIES.uncommon;
-            else rarity = RARITIES.common;
+            
+            if (rand < 0.0001 + (0.0001 * luck)) rarity = RARITIES.mythic; 
+            else if (rand < 0.002 + (0.001 * luck)) rarity = RARITIES.legendary; 
+            else if (rand < 0.015 + (0.005 * luck)) rarity = RARITIES.epic; 
+            else if (rand < 0.10 + (0.02 * luck)) rarity = RARITIES.rare; 
+            else if (rand < 0.35 + (0.05 * luck)) rarity = RARITIES.uncommon; 
+            else rarity = RARITIES.common; 
 
             const number = generateNumberFormat(rarity.id);
             const dynamicData = calculateDynamicData(number, rarity.id);
@@ -477,14 +521,14 @@
             
             let currentMarketPrice = getMarketPrice(newSim.baseDynamicPrice, rarity.id);
             state.collection.unshift(newSim); 
+            
+            saveGame(); 
 
-            // Если редкая - запускаем долгую драматичную анимацию
             if (['epic', 'legendary', 'mythic'].includes(rarity.id)) {
                 isAnimating = true;
                 card.classList.add('dramatic-glow');
-                document.getElementById('descLabel').innerText = ''; // Очищаем текст
+                document.getElementById('descLabel').innerText = ''; 
                 
-                // Вибрация (если поддерживается устройством/Telegram)
                 if (window.navigator && window.navigator.vibrate) navigator.vibrate([100, 50, 100]);
 
                 animateValue(document.getElementById('priceLabel'), 0, currentMarketPrice, 1500);
@@ -493,14 +537,11 @@
                     setTimeout(() => { 
                         isAnimating = false; 
                         card.classList.remove('dramatic-glow');
-                    }, 1500); // Разблокируем клики после текста
+                    }, 1500);
                 }, 1500);
             } else {
-                // Обычные карточки - МГНОВЕННО, МОЖНО СПАМИТЬ!
                 document.getElementById('priceLabel').innerText = currentMarketPrice.toLocaleString('ru-RU') + ' ₽';
                 document.getElementById('descLabel').innerText = newSim.desc;
-                
-                // Легкая вибрация на клик
                 if (window.navigator && window.navigator.vibrate) navigator.vibrate(10);
             }
         }
@@ -508,12 +549,12 @@
         // --- ИНВЕНТАРЬ ---
         function toggleLock(id) {
             let item = state.collection.find(i => i.id === id);
-            if(item) { item.locked = !item.locked; renderCollection(); }
+            if(item) { item.locked = !item.locked; renderCollection(); saveGame(); }
         }
 
         function equipSim(id) {
             let item = state.collection.find(i => i.id === id);
-            if(item) { state.equipped = item; renderCollection(); showToast('Номер применен', 'success'); }
+            if(item) { state.equipped = item; renderCollection(); saveGame(); showToast('Номер применен', 'success'); }
         }
 
         function sellSim(id) {
@@ -527,7 +568,7 @@
             
             state.balance += profit; state.stats.earned += profit;
             state.collection.splice(idx, 1);
-            updateBalanceUI(); renderCollection();
+            updateBalanceUI(); renderCollection(); saveGame();
             showToast(`Продано: +${profit.toLocaleString()} ₽`, 'success');
         }
 
@@ -574,7 +615,6 @@
             });
         }
 
-        // --- МАССОВАЯ ПРОДАЖА ---
         function initMassSellTags() {
             const container = document.getElementById('massSellTags');
             const filterDrop = document.getElementById('filterRarity');
@@ -611,20 +651,19 @@
             });
             if (count > 0) {
                 state.balance += totalEarned; state.stats.earned += totalEarned; state.collection = toKeep;
-                updateBalanceUI(); renderCollection();
+                updateBalanceUI(); renderCollection(); saveGame();
                 showToast(`Продано ${count} шт. на ${totalEarned.toLocaleString()} ₽`, 'success');
             } else { showToast('Нечего продавать (защищено или пусто)', 'error'); }
         }
 
         // --- ПРОКАЧКА ---
         function buyUpgrade(upgKey) {
-            let upg = UPGRADES[upgKey];
-            let lvl = state.upgrades[upgKey];
+            let upg = UPGRADES[upgKey]; let lvl = state.upgrades[upgKey];
             let cost = Math.floor(upg.baseCost * Math.pow(upg.mult, lvl));
             
             if (state.balance >= cost && lvl < upg.maxLevel) {
                 state.balance -= cost; state.upgrades[upgKey]++;
-                updateBalanceUI(); renderUpgrades(); updateMarket();
+                updateBalanceUI(); renderUpgrades(); updateMarket(); saveGame();
                 showToast('Навык улучшен!', 'success');
             } else { showToast('Мало денег или макс. уровень', 'error'); }
         }
@@ -664,7 +703,11 @@
             document.getElementById('profTotalEarned').innerText = state.stats.earned.toLocaleString('ru-RU') + ' ₽';
         }
 
-        updateMarket(); updateBalanceUI(); initMassSellTags();
+        updateBalanceUI();
+        initMassSellTags();
+        document.getElementById('marketTicker').innerHTML = state.market.active 
+            ? `⚖️ ТЕКУЩИЙ РЫНОК (x${state.market.mult}) | Комиссия: ${getCommissionPercent()}%`
+            : `⚖️ Рынок стабилен | Комиссия: ${getCommissionPercent()}%`;
     </script>
 </body>
 </html>
