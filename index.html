@@ -8,13 +8,16 @@
     <style>
         :root {
             --bg-color: #0b0c10;
-            --glass-bg: rgba(31, 40, 51, 0.7);
-            --glass-border: rgba(255, 255, 255, 0.1);
-            --text-main: #c5c6c7;
+            --glass-bg: rgba(22, 27, 34, 0.85);
+            --glass-border: rgba(255, 255, 255, 0.08);
+            --text-main: #c9d1d9;
             --text-bright: #ffffff;
+            --text-muted: #8b949e;
             --accent: #66fcf1;
             --danger: #ff4c4c;
         }
+
+        * { box-sizing: border-box; }
 
         body {
             margin: 0; padding: 0;
@@ -34,47 +37,60 @@
             touch-action: manipulation;
         }
 
-        .top-nav {
-            position: fixed;
-            top: 15px; left: 50%; transform: translateX(-50%);
-            display: flex; gap: 5px;
-            background: var(--glass-bg);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            padding: 5px;
-            border-radius: 30px;
-            border: 1px solid var(--glass-border);
-            box-shadow: 0 8px 32px rgba(0,0,0,0.5);
-            z-index: 100;
+        /* --- НОВАЯ ВЕРХНЯЯ ПАНЕЛЬ --- */
+        .top-bar {
+            position: fixed; top: 0; left: 0; width: 100%;
+            background: rgba(11, 12, 16, 0.95);
+            backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
+            padding: 12px 0 10px 0; text-align: center;
+            border-bottom: 1px solid var(--glass-border);
+            z-index: 90; box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+            padding-top: env(safe-area-inset-top, 12px);
+        }
+        #marketTicker { font-size: 10px; color: var(--accent); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; font-weight: bold;}
+        .balance-val { font-size: 26px; font-weight: bold; color: #ffd700; text-shadow: 0 0 10px rgba(255,215,0,0.3); }
+        .balance-euro { font-size: 16px; font-weight: bold; color: #81c784; text-shadow: 0 0 10px rgba(129,199,132,0.3); margin-top: 2px; display: none; }
+        #genCostHint { font-size: 11px; color: var(--text-muted); margin-top: 4px; }
+
+        /* --- НОВАЯ НИЖНЯЯ НАВИГАЦИЯ --- */
+        .bottom-nav {
+            position: fixed; bottom: 0; left: 0; width: 100%;
+            display: flex; justify-content: space-around;
+            background: rgba(11, 12, 16, 0.98);
+            backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
+            padding: 10px 0; border-top: 1px solid var(--glass-border);
+            z-index: 100; box-shadow: 0 -4px 20px rgba(0,0,0,0.5);
+            padding-bottom: calc(10px + env(safe-area-inset-bottom, 0px));
         }
         .nav-item {
-            background: transparent; border: none; color: var(--text-main);
-            padding: 10px 15px; border-radius: 20px; font-size: 13px; font-weight: bold;
-            cursor: pointer; transition: 0.3s; outline: none;
+            flex: 1; text-align: center;
+            background: transparent; border: none;
+            color: var(--text-muted);
+            font-size: 10px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px;
+            cursor: pointer; transition: 0.3s;
+            display: flex; flex-direction: column; align-items: center; gap: 4px;
         }
-        .nav-item.active {
-            background: var(--accent); color: #000; box-shadow: 0 0 10px var(--accent);
-        }
+        .nav-item.active { color: var(--accent); }
+        .nav-icon { font-size: 22px; filter: grayscale(100%) opacity(0.6); transition: 0.3s; }
+        .nav-item.active .nav-icon { filter: grayscale(0%) opacity(1); transform: translateY(-2px); }
 
-        #marketTicker {
-            position: fixed; top: 70px; width: 100%;
-            text-align: center; font-size: 11px; color: var(--accent);
-            text-transform: uppercase; letter-spacing: 1px; z-index: 90;
+        /* --- КОНТЕНТ --- */
+        .content { 
+            flex: 1; overflow-y: auto; 
+            padding: 110px 20px 90px 20px;
         }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; animation: fadeIn 0.3s; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
 
-        .balance-info {
-            position: fixed; top: 90px; width: 100%; text-align: center; z-index: 90;
-        }
-        .balance-val { font-size: 28px; font-weight: bold; color: #ffd700; text-shadow: 0 0 10px rgba(255,215,0,0.5); }
-        .balance-euro { font-size: 18px; font-weight: bold; color: #81c784; text-shadow: 0 0 10px rgba(129,199,132,0.5); margin-top: 3px; display: none; }
-
+        /* --- ТОСТЫ --- */
         #toast-container {
-            position: fixed; top: 160px; left: 50%; transform: translateX(-50%);
+            position: fixed; top: 120px; left: 50%; transform: translateX(-50%);
             display: flex; flex-direction: column; align-items: center; gap: 10px;
             z-index: 1000; pointer-events: none; width: 90%;
         }
         .toast {
-            background: rgba(11, 12, 16, 0.95); border-left: 4px solid var(--danger);
+            background: rgba(22, 27, 34, 0.95); border-left: 4px solid var(--danger);
             color: white; padding: 12px 20px; border-radius: 8px; font-size: 14px;
             animation: slideDown 0.3s ease-out; backdrop-filter: blur(5px);
             box-shadow: 0 4px 15px rgba(0,0,0,0.5); border: 1px solid var(--glass-border);
@@ -83,15 +99,11 @@
         .toast.pulse { transform: scale(1.05); transition: 0.1s; }
         @keyframes slideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
 
-        .content { flex: 1; overflow-y: auto; padding: 180px 20px 20px 20px; }
-        .tab-content { display: none; }
-        .tab-content.active { display: block; animation: fadeIn 0.3s; }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-
-        .generator-container { display: flex; flex-direction: column; align-items: center; position: relative; }
+        /* --- ГАЧА / СИМ-КАРТА --- */
+        .generator-container { display: flex; flex-direction: column; align-items: center; position: relative; margin-top: 10px; }
         
         #history-container {
-            position: absolute; top: -50px; width: 100%; height: 150px;
+            position: absolute; top: -60px; width: 100%; height: 150px;
             pointer-events: none; display: flex; flex-direction: column; align-items: center; z-index: 10;
         }
         .skipped-item {
@@ -99,100 +111,99 @@
             animation: flyUp 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
             opacity: 0.5; transform: scale(0.7);
         }
-        .skipped-label { font-size: 10px; color: var(--text-main); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 5px; }
+        .skipped-label { font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 5px; }
         @keyframes flyUp {
             0% { transform: translateY(50px) scale(0.85); opacity: 1; }
             100% { transform: translateY(-100px) scale(0.6); opacity: 0; }
         }
 
         .sim-wrapper {
-            margin-bottom: 20px; cursor: pointer;
+            margin-bottom: 15px; cursor: pointer;
             filter: drop-shadow(0 15px 25px rgba(0,0,0,0.6));
             -webkit-tap-highlight-color: transparent;
             z-index: 20;
         }
         .sim-card {
-            width: 220px; height: 340px;
+            width: 210px; height: 330px;
             background: linear-gradient(135deg, #2a2a35, #1a1a25);
-            border-radius: 20px; border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 20px; border: 2px solid rgba(255,255,255,0.08);
             display: flex; flex-direction: column; align-items: center;
-            position: relative;
-            transition: transform 0.1s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.1s;
+            position: relative; overflow: hidden;
+            transition: transform 0.1s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+        .sim-card::before {
+            content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%;
+            background: linear-gradient(to bottom right, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0) 40%, rgba(255,255,255,0) 100%);
+            pointer-events: none;
         }
         
-        .sim-card.pressed {
-            transform: scale(0.92) !important;
-            box-shadow: inset 0 0 20px rgba(0,0,0,0.8) !important;
-        }
-
-        .sim-card.dramatic-glow {
-            box-shadow: 0 0 40px var(--accent);
-            animation: shake 0.5s;
-        }
+        .sim-card.pressed { transform: scale(0.94) !important; box-shadow: inset 0 0 20px rgba(0,0,0,0.8) !important; }
+        .sim-card.dramatic-glow { box-shadow: 0 0 40px var(--accent); animation: shake 0.5s; }
         @keyframes shake {
-            0% { transform: translateX(0); }
-            25% { transform: translateX(-5px); }
+            0%, 100% { transform: translateX(0); }
+            25%, 75% { transform: translateX(-5px); }
             50% { transform: translateX(5px); }
-            75% { transform: translateX(-5px); }
-            100% { transform: translateX(0); }
         }
 
         .mythic-flash {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: radial-gradient(circle, rgba(255,82,82,0.4) 0%, transparent 80%);
-            pointer-events: none; z-index: 15;
-            animation: flashFade 2.5s ease-out forwards;
+            pointer-events: none; z-index: 15; animation: flashFade 2.5s ease-out forwards;
         }
         @keyframes flashFade { 0% { opacity: 1; } 100% { opacity: 0; } }
 
         .sim-card.mythic-glow {
             animation: mythicVibrate 0.1s infinite, mythicPulse 1.5s infinite;
-            border: 2px solid #ff5252;
-            box-shadow: 0 0 80px #ff5252, inset 0 0 40px #ff0000;
+            border: 2px solid #ff5252; box-shadow: 0 0 80px #ff5252, inset 0 0 40px #ff0000;
         }
         @keyframes mythicVibrate {
-            0% { transform: translate(0, 0); }
+            0%, 100% { transform: translate(0, 0); }
             50% { transform: translate(-2px, 2px); }
-            100% { transform: translate(2px, -2px); }
         }
         @keyframes mythicPulse {
-            0% { filter: hue-rotate(0deg) brightness(1); }
+            0%, 100% { filter: hue-rotate(0deg) brightness(1); }
             50% { filter: hue-rotate(20deg) brightness(1.3); }
-            100% { filter: hue-rotate(0deg) brightness(1); }
         }
         
         .sim-chip {
             width: 50px; height: 70px; background: linear-gradient(135deg, #ffd700, #daa520);
-            border-radius: 8px; margin-top: 50px; border: 1px solid #b8860b; pointer-events: none;
+            border-radius: 8px; margin-top: 55px; border: 1px solid #b8860b; pointer-events: none;
         }
-        .sim-logo { position: absolute; bottom: 80px; font-weight: 900; letter-spacing: 4px; color: rgba(255,255,255,0.05); font-size: 28px; pointer-events: none;}
+        .sim-logo { position: absolute; bottom: 85px; font-weight: 900; letter-spacing: 4px; color: rgba(255,255,255,0.08); font-size: 26px; pointer-events: none;}
         
-        /* КЛИКАБЕЛЬНЫЙ НОМЕР */
         .sim-number {
-            position: absolute; bottom: 30px; font-size: 16px; font-family: 'Courier New', monospace;
-            background: rgba(0,0,0,0.5); padding: 8px 15px; border-radius: 10px; font-weight: bold; 
-            cursor: pointer; pointer-events: auto; z-index: 25; border: 1px solid transparent; transition: 0.2s;
+            position: absolute; bottom: 25px; width: 85%;
+            font-size: 15px; font-family: 'Courier New', monospace;
+            background: rgba(0,0,0,0.6); color: #fff; text-shadow: 0 0 5px rgba(255,255,255,0.5);
+            padding: 12px 0; border-radius: 8px; font-weight: bold; 
+            cursor: pointer; pointer-events: auto; z-index: 25; 
+            border: 1px solid rgba(255,255,255,0.1); transition: 0.2s;
+            text-align: center; box-shadow: inset 0 2px 10px rgba(0,0,0,0.5);
+            backdrop-filter: blur(5px);
         }
-        .sim-number:hover { border-color: var(--accent); box-shadow: 0 0 10px var(--accent); }
+        .sim-number:hover, .sim-number:active { border-color: var(--accent); box-shadow: 0 0 15px var(--accent) inset; }
         .sim-number::after {
-            content: "🔍 Нажми"; position: absolute; top: -20px; left: 50%; transform: translateX(-50%);
+            content: "🔍 Детали"; position: absolute; top: -22px; left: 50%; transform: translateX(-50%);
             font-size: 10px; color: var(--accent); opacity: 0; transition: 0.2s; white-space: nowrap; font-family: sans-serif;
+            text-shadow: none; font-weight: normal; letter-spacing: 1px;
         }
-        .sim-number:hover::after { opacity: 1; }
+        .sim-number:hover::after, .sim-number:active::after { opacity: 1; }
         
-        .click-hint { color: var(--text-main); font-size: 12px; text-transform: uppercase; letter-spacing: 2px; margin-top: 10px; animation: blink 2s infinite; pointer-events: none;}
+        .click-hint { color: var(--text-muted); font-size: 11px; text-transform: uppercase; letter-spacing: 2px; margin-top: 5px; animation: blink 2s infinite; pointer-events: none;}
         @keyframes blink { 0%, 100% { opacity: 0.3; } 50% { opacity: 1; } }
 
-        .result-panel { text-align: center; min-height: 90px; margin-top: 10px; pointer-events: none;}
-        #rarityLabel { font-size: 22px; font-weight: bold; margin-bottom: 5px; text-transform: uppercase; letter-spacing: 1px; }
-        #priceLabel { font-size: 18px; color: #ffd700; font-weight: bold; font-family: monospace; }
+        .result-panel { text-align: center; min-height: 90px; margin-top: 15px; pointer-events: none;}
+        #rarityLabel { font-size: 20px; font-weight: bold; margin-bottom: 5px; text-transform: uppercase; letter-spacing: 2px; }
+        #priceLabel { font-size: 20px; color: #ffd700; font-weight: bold; font-family: monospace; }
         #euroLabel { font-size: 16px; color: #81c784; font-weight: bold; font-family: monospace; margin-top: 2px; display: none;}
-        #descLabel { font-size: 12px; color: var(--text-main); margin-top: 5px; font-style: italic; min-height: 15px;}
-        #operatorLabel { font-size: 11px; color: var(--text-muted); margin-top: 3px; font-weight: bold; letter-spacing: 0.5px; }
+        #descLabel { font-size: 13px; color: var(--text-bright); margin-top: 5px; font-weight: 600; min-height: 15px;}
+        #operatorLabel { font-size: 11px; color: var(--text-muted); margin-top: 3px; font-weight: normal; letter-spacing: 0.5px; }
 
+        /* --- ЭЛЕМЕНТЫ ИНТЕРФЕЙСА --- */
         .glass-panel {
             background: var(--glass-bg); border: 1px solid var(--glass-border);
-            border-radius: 15px; padding: 15px; margin-bottom: 20px; backdrop-filter: blur(10px);
+            border-radius: 15px; padding: 15px; margin-bottom: 20px; box-shadow: 0 8px 32px rgba(0,0,0,0.2);
         }
         .mass-sell-tags { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 15px; }
         .sell-tag {
@@ -200,13 +211,15 @@
             border-radius: 20px; font-size: 12px; cursor: pointer; border: 1px solid transparent; transition: 0.2s;
         }
         .sell-tag.active { border-color: currentColor; box-shadow: 0 0 10px currentColor inset; color: #fff; }
+        
         .btn-full {
-            width: 100%; padding: 12px; background: rgba(255,255,255,0.1); color: var(--text-bright);
-            border: 1px solid var(--glass-border); border-radius: 10px; font-weight: bold; cursor: pointer; margin-bottom: 8px; transition: 0.2s;
+            width: 100%; padding: 14px; background: rgba(255,255,255,0.05); color: var(--text-bright);
+            border: 1px solid var(--glass-border); border-radius: 12px; font-weight: bold; cursor: pointer; margin-bottom: 10px; transition: 0.2s;
+            font-size: 14px; text-transform: uppercase; letter-spacing: 1px;
         }
         .btn-full:active { transform: scale(0.98); }
-        .btn-full.primary { background: var(--accent); color: #000; border: none; }
-        .btn-full.danger { background: rgba(255, 76, 76, 0.8); color: white; border: none;}
+        .btn-full.primary { background: var(--accent); color: #000; border: none; box-shadow: 0 4px 15px rgba(102, 252, 241, 0.3);}
+        .btn-full.danger { background: rgba(248, 81, 73, 0.9); color: white; border: none; box-shadow: 0 4px 15px rgba(248, 81, 73, 0.3);}
 
         .filters { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
         select {
@@ -214,122 +227,142 @@
             color: white; border: 1px solid var(--glass-border); font-size: 12px; outline: none;
         }
         
-        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 10px; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 12px; }
         .card {
-            background: rgba(255,255,255,0.02); border: 1px solid var(--glass-border); border-radius: 12px;
+            background: rgba(255,255,255,0.03); border: 1px solid var(--glass-border); border-radius: 14px;
             padding: 15px 10px; display: flex; flex-direction: column; align-items: center; text-align: center; position: relative;
-            cursor: pointer; transition: 0.2s;
+            cursor: pointer; transition: 0.2s; box-shadow: 0 4px 15px rgba(0,0,0,0.2);
         }
-        .card:hover { background: rgba(255,255,255,0.05); }
-        .card-num { font-family: 'Courier New', monospace; font-size: 13px; margin: 15px 0 5px 0; font-weight: bold;}
-        .card-price { color: #ffd700; font-size: 14px; margin-bottom: 5px; }
+        .card:hover { background: rgba(255,255,255,0.06); transform: translateY(-2px); }
+        .card-num { font-family: 'Courier New', monospace; font-size: 14px; margin: 15px 0 5px 0; font-weight: bold;}
+        .card-price { color: #ffd700; font-size: 14px; margin-bottom: 5px; font-weight: bold;}
         .lock-icon { position: absolute; top: 10px; right: 10px; font-size: 16px; opacity: 0.5; }
         .lock-icon.locked { opacity: 1; text-shadow: 0 0 10px #fff; }
 
         .upgrade-card {
-            background: rgba(255,255,255,0.02); border: 1px solid var(--glass-border); border-radius: 12px;
+            background: rgba(255,255,255,0.03); border: 1px solid var(--glass-border); border-radius: 12px;
             padding: 15px; margin-bottom: 15px; border-left: 4px solid var(--accent);
-            display: flex; justify-content: space-between; align-items: center;
+            display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 15px rgba(0,0,0,0.2);
         }
         .btn-upg { background: var(--accent); border: none; border-radius: 8px; color: #000; padding: 10px 15px; font-weight: bold; cursor: pointer; }
-        .btn-upg:disabled { background: #333; color: #777; }
+        .btn-upg:disabled { background: rgba(255,255,255,0.1); color: var(--text-muted); box-shadow: none; }
         
-        .stat-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 14px; }
+        .stat-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 13px; }
         .stat-item:last-child { border-bottom: none; }
-        .stat-header { font-size: 12px; color: var(--accent); text-transform: uppercase; margin-top: 15px; margin-bottom: 5px; font-weight: bold; }
+        .stat-header { font-size: 11px; color: var(--accent); text-transform: uppercase; margin-top: 20px; margin-bottom: 5px; font-weight: bold; letter-spacing: 1px;}
 
+        /* --- АНИМАЦИЯ МОДАЛЬНОГО ОКНА --- */
         .modal-overlay {
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.8); z-index: 200; justify-content: center; align-items: center;
-            backdrop-filter: blur(5px);
+            background: rgba(0,0,0,0.85); z-index: 200; justify-content: center; align-items: center;
+            backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
         }
-        .modal-overlay.active { display: flex; animation: fadeIn 0.2s; }
+        .modal-overlay.active { display: flex; animation: fadeIn 0.2s forwards; }
+        
         .modal-content {
-            background: linear-gradient(135deg, #1f2833, #0b0c10); border: 1px solid var(--glass-border);
-            padding: 25px 20px; border-radius: 20px; width: 90%; max-width: 380px; max-height: 90vh; overflow-y: auto;
-            text-align: center; box-shadow: 0 15px 35px rgba(0,0,0,0.6); position: relative;
+            background: linear-gradient(135deg, #161b22, #0d1117); border: 1px solid rgba(255,255,255,0.15);
+            padding: 25px 20px; border-radius: 24px; width: 90%; max-width: 380px; max-height: 85vh; overflow-y: auto;
+            text-align: center; box-shadow: 0 25px 50px rgba(0,0,0,0.8); position: relative;
+            animation: modalPop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
         }
+        @keyframes modalPop {
+            0% { opacity: 0; transform: scale(0.8) translateY(20px); pointer-events: none; }
+            99% { pointer-events: none; }
+            100% { opacity: 1; transform: scale(1) translateY(0); pointer-events: auto; }
+        }
+
         .modal-close {
-            position: absolute; top: 15px; right: 15px; background: none; border: none;
-            color: #fff; font-size: 24px; cursor: pointer; opacity: 0.6; z-index: 10;
+            position: absolute; top: 15px; right: 15px; background: rgba(255,255,255,0.1); border: none; border-radius: 50%; width: 30px; height: 30px;
+            color: #fff; font-size: 18px; cursor: pointer; z-index: 10; display: flex; align-items: center; justify-content: center; transition: 0.2s;
         }
-        .modal-close:hover { opacity: 1; }
-        .modal-btn { width: 100%; padding: 12px; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; margin-bottom: 10px; font-size: 14px; }
+        .modal-close:hover { background: rgba(255,255,255,0.2); transform: scale(1.1); }
+        .modal-btn { width: 100%; padding: 14px; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; margin-bottom: 10px; font-size: 14px; text-transform: uppercase; letter-spacing: 1px; transition: 0.2s; }
+        .modal-btn:active { transform: scale(0.98); }
     
-        .color-presets { display: flex; gap: 10px; justify-content: center; margin-top: 10px; }
-        .color-btn { width: 30px; height: 30px; border-radius: 50%; cursor: pointer; border: 2px solid transparent; transition: 0.2s; }
-        .color-btn.active { border-color: #fff; transform: scale(1.1); box-shadow: 0 0 10px currentColor; }
+        .color-presets { display: flex; gap: 12px; justify-content: center; margin-top: 15px; }
+        .color-btn { width: 32px; height: 32px; border-radius: 50%; cursor: pointer; border: 2px solid transparent; transition: 0.2s; box-shadow: 0 4px 10px rgba(0,0,0,0.3);}
+        .color-btn.active { border-color: #fff; transform: scale(1.15); box-shadow: 0 0 15px currentColor; }
         
-        .switch { position: relative; display: inline-block; width: 40px; height: 20px; }
+        .switch { position: relative; display: inline-block; width: 44px; height: 24px; }
         .switch input { opacity: 0; width: 0; height: 0; }
-        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #333; transition: .4s; border-radius: 20px; }
-        .slider:before { position: absolute; content: ""; height: 16px; width: 16px; left: 2px; bottom: 2px; background-color: white; transition: .4s; border-radius: 50%; }
-        input:checked + .slider { background-color: var(--accent); }
-        input:checked + .slider:before { transform: translateX(20px); }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: rgba(255,255,255,0.1); transition: .4s; border-radius: 24px; border: 1px solid rgba(255,255,255,0.1);}
+        .slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 2px; bottom: 2px; background-color: var(--text-muted); transition: .4s; border-radius: 50%; }
+        input:checked + .slider { background-color: var(--accent); border-color: var(--accent); }
+        input:checked + .slider:before { transform: translateX(20px); background-color: #000; }
         
-        .eval-source { font-size: 11px; color: var(--text-muted); margin-top: 15px; border-top: 1px solid var(--glass-border); padding-top: 10px; }
-        .combo-box { background: rgba(0,0,0,0.3); border-radius: 8px; padding: 10px; text-align: left; font-size: 12px; margin-bottom: 15px; border: 1px solid var(--glass-border); color: var(--text-main); }
-        .combo-line { margin-bottom: 5px; border-bottom: 1px dashed rgba(255,255,255,0.05); padding-bottom: 5px; }
+        .eval-source { font-size: 10px; color: var(--text-muted); margin-top: 15px; border-top: 1px solid var(--glass-border); padding-top: 12px; }
+        .combo-box { background: rgba(0,0,0,0.4); border-radius: 12px; padding: 12px; text-align: left; font-size: 12px; margin-bottom: 15px; border: 1px solid var(--glass-border); color: var(--text-main); }
+        .combo-line { margin-bottom: 8px; border-bottom: 1px dashed rgba(255,255,255,0.05); padding-bottom: 8px; }
         .combo-line:last-child { margin-bottom: 0; border-bottom: none; padding-bottom: 0; }
-        .combo-name { font-weight: bold; color: #fff; }
+        .combo-name { font-weight: bold; color: #fff; font-size: 13px;}
     </style>
 </head>
 <body>
 
-    <nav class="top-nav">
-        <button class="nav-item active" onclick="switchTab('gen', this)">Крутить</button>
-        <button class="nav-item" onclick="switchTab('col', this)">Коллекция</button>
-        <button class="nav-item" onclick="switchTab('upg', this)">Апгрейды</button>
-        <button class="nav-item" onclick="switchTab('prof', this)">Профиль</button>
-    </nav>
-
-    <div id="marketTicker">⚖️ Рынок стабилен</div>
-    <div class="balance-info">
+    <div class="top-bar">
+        <div id="marketTicker">⚖️ Рынок стабилен | Комиссия: 15%</div>
         <div class="balance-val"><span id="headerBalance">0</span> ₽</div>
         <div class="balance-euro" id="headerEuroContainer"><span id="headerEuro">0</span> €</div>
-        <div id="genCostHint" style="font-size:12px; color:var(--text-main); margin-top:5px;">Стоимость SIM: 1 000 ₽</div>
+        <div id="genCostHint">Стоимость SIM: 1 000 ₽</div>
     </div>
+
+    <nav class="bottom-nav">
+        <div class="nav-item active" onclick="switchTab('gen', this)">
+            <div class="nav-icon">🎰</div>
+            <span>Гача</span>
+        </div>
+        <div class="nav-item" onclick="switchTab('col', this)">
+            <div class="nav-icon">🗂️</div>
+            <span>Сейф</span>
+        </div>
+        <div class="nav-item" onclick="switchTab('upg', this)">
+            <div class="nav-icon">🏢</div>
+            <span>Бизнес</span>
+        </div>
+        <div class="nav-item" onclick="switchTab('prof', this)">
+            <div class="nav-icon">👤</div>
+            <span>Профиль</span>
+        </div>
+    </nav>
 
     <div id="toast-container"></div>
 
     <div id="simModal" class="modal-overlay" onclick="if(event.target===this) closeModal()">
         <div class="modal-content" onclick="event.stopPropagation()">
             <button class="modal-close" onclick="closeModal()">×</button>
-            <div id="modalRarity" style="font-size: 12px; text-transform: uppercase; margin-bottom: 5px; font-weight: bold;"></div>
-            <div id="modalNumber" style="font-size: 26px; font-weight: bold; font-family: 'Courier New', monospace; margin-bottom: 15px; text-shadow: 0 0 10px rgba(255,255,255,0.2);"></div>
+            <div id="modalRarity" style="font-size: 12px; text-transform: uppercase; margin-bottom: 5px; font-weight: bold; letter-spacing: 1px;"></div>
+            <div id="modalNumber" style="font-size: 28px; font-weight: bold; font-family: 'Courier New', monospace; margin-bottom: 15px; text-shadow: 0 0 15px rgba(255,255,255,0.2);"></div>
             
-            <div style="background: rgba(255,255,255,0.05); border-radius: 10px; padding: 15px; margin-bottom: 20px; border: 1px solid var(--glass-border);">
+            <div style="background: rgba(255,255,255,0.03); border-radius: 15px; padding: 15px; margin-bottom: 20px; border: 1px solid var(--glass-border);">
                 
-                <div style="display: flex; justify-content: space-between; font-size: 12px; color: var(--text-main); margin-bottom: 10px;">
+                <div style="display: flex; justify-content: space-between; font-size: 13px; color: var(--text-main); margin-bottom: 10px;">
                     <span>Оператор:</span> <span id="modalOperator" style="font-weight:bold; color:var(--accent);"></span>
                 </div>
                 
-                <div style="display: flex; justify-content: space-between; font-size: 12px; color: var(--text-main); margin-bottom: 10px;">
-                    <span>Индекс красоты:</span> <span id="modalBeautyIndex" style="font-weight:bold; color:#fff;"></span>
+                <div style="display: flex; justify-content: space-between; font-size: 13px; color: var(--text-main); margin-bottom: 10px;">
+                    <span>Индекс красоты:</span> <span id="modalBeautyIndex" style="font-weight:bold; color:#fff; background: rgba(255,255,255,0.1); padding: 2px 8px; border-radius: 10px;"></span>
                 </div>
 
-                <div class="combo-box" id="modalComboLines">
-                    <!-- Заполняется JS -->
-                </div>
+                <div class="combo-box" id="modalComboLines"></div>
                 
                 <div id="modalMultiplier" style="font-size: 13px; color: var(--accent); font-weight: bold; margin-bottom: 10px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px; text-align: left;"></div>
                 
-                <div style="display: flex; justify-content: space-between; font-size: 12px; color: var(--text-main); margin-bottom: 5px;">
-                    <span>Оценка рынка:</span> <span id="modalBasePrice"></span>
+                <div style="display: flex; justify-content: space-between; font-size: 13px; color: var(--text-main); margin-bottom: 5px;">
+                    <span>Оценка рынка:</span> <span id="modalBasePrice" style="font-family: monospace;"></span>
                 </div>
-                <div style="display: flex; justify-content: space-between; font-size: 12px; color: var(--danger); margin-bottom: 5px;">
-                    <span>Комиссия (15%):</span> <span id="modalComm"></span>
+                <div style="display: flex; justify-content: space-between; font-size: 13px; color: var(--danger); margin-bottom: 5px;">
+                    <span>Комиссия (15%):</span> <span id="modalComm" style="font-family: monospace;"></span>
                 </div>
-                <div style="display: flex; justify-content: space-between; font-size: 18px; color: #ffd700; font-weight: bold; margin-top: 10px;">
-                    <span>Прибыль:</span> <span id="modalFinalPrice"></span>
+                <div style="display: flex; justify-content: space-between; font-size: 20px; color: #ffd700; font-weight: bold; margin-top: 12px; padding-top: 10px; border-top: 1px solid rgba(255,255,255,0.1);">
+                    <span>Прибыль:</span> <span id="modalFinalPrice" style="text-align: right;"></span>
                 </div>
                 <div id="modalSource" class="eval-source"></div>
             </div>
 
             <div>
-                <button class="modal-btn" id="modalEquipBtn" style="background: var(--accent); color: #000;" onclick="modalEquip()"></button>
-                <button class="modal-btn" id="modalSafeBtn" style="background: #3f51b5; color: white;" onclick="modalToggleSafe()"></button>
-                <button class="modal-btn" id="modalSellBtn" style="background: var(--danger); color: white;" onclick="modalSell()">Продать</button>
+                <button class="modal-btn" id="modalEquipBtn" style="background: var(--accent); color: #000; box-shadow: 0 4px 15px rgba(102, 252, 241, 0.3);" onclick="modalEquip()"></button>
+                <button class="modal-btn" id="modalSafeBtn" style="background: rgba(255,255,255,0.1); color: white; border: 1px solid var(--glass-border);" onclick="modalToggleSafe()"></button>
+                <button class="modal-btn" id="modalSellBtn" style="background: var(--danger); color: white; box-shadow: 0 4px 15px rgba(248, 81, 73, 0.3);" onclick="modalSell()">Продать</button>
             </div>
         </div>
     </div>
@@ -338,16 +371,14 @@
         <div id="tab-gen" class="tab-content active">
             <div class="generator-container">
                 <div id="history-container"></div>
-                <!-- Обертка генерирует номер по клику -->
-                <div class="sim-wrapper" id="simWrapper" onmousedown="generateSim()" ontouchstart="handleTouch(event)">
+                <div class="sim-wrapper" id="simWrapper" onclick="handleWrapperClick(event)">
                     <div class="sim-card" id="simCard">
                         <div class="sim-chip"></div>
                         <div class="sim-logo">PREMIUM</div>
-                        <!-- ВНИМАНИЕ: Сам номер перехватывает клик и открывает модалку! -->
-                        <div class="sim-number" id="simNumber" onmousedown="inspectLastSim(event)" ontouchstart="inspectLastSim(event)">+7 (***) ***-**-**</div>
+                        <div class="sim-number" id="simNumber" onclick="inspectLastSim(event)">+7 (***) ***-**-**</div>
                     </div>
                 </div>
-                <div class="click-hint">Кликай по карте быстро!</div>
+                <div class="click-hint">Нажми на карту, чтобы крутить!</div>
                 <div class="result-panel" id="resultPanel">
                     <div id="rarityLabel"></div>
                     <div id="priceLabel"></div>
@@ -379,21 +410,21 @@
         </div>
 
         <div id="tab-upg" class="tab-content">
-            <div style="margin-bottom: 20px; color: var(--text-main); font-size: 14px;">Вложите деньги в развитие бизнеса (комиссия всегда 15%).</div>
+            <div style="margin-bottom: 20px; color: var(--text-muted); font-size: 13px; line-height: 1.5; text-align: center;">Вложите деньги в развитие бизнеса.<br>Комиссия при продаже всегда составляет 15%.</div>
             <div id="upgradesList"></div>
         </div>
 
         <div id="tab-prof" class="tab-content">
             <div class="glass-panel" style="text-align: center; padding: 30px;">
                 <div style="font-size: 50px; margin-bottom: 10px;">💼</div>
-                <div style="color: var(--text-main); font-size: 14px;">Ваш эксклюзивный номер:</div>
-                <div id="profEquipped" style="font-size: 22px; font-family: monospace; font-weight: bold; margin-top: 10px; color: var(--accent);">Нет номера</div>
+                <div style="color: var(--text-muted); font-size: 12px; text-transform: uppercase; letter-spacing: 1px;">Ваш эксклюзивный номер</div>
+                <div id="profEquipped" style="font-size: 24px; font-family: monospace; font-weight: bold; margin-top: 10px; color: var(--accent);">Нет номера</div>
             </div>
 
-            <div class="glass-panel" id="autosellerProfilePanel" style="display: none; border: 1px solid #81c784; box-shadow: inset 0 0 20px rgba(129,199,132,0.1);">
+            <div class="glass-panel" id="autosellerProfilePanel" style="display: none; border: 1px solid rgba(129,199,132,0.5); box-shadow: inset 0 0 20px rgba(129,199,132,0.05);">
                 <h3 style="margin-top:0; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px; color: #81c784;">🤖 Автоселлер</h3>
                 <div id="asStatus" style="font-size: 13px; margin-bottom: 15px; color: var(--text-main); line-height: 1.5;"></div>
-                <button id="asUpgBtn" class="btn-action primary" style="margin-bottom:0; background: #81c784; color: #000;" onclick="upgradeAutosellerProfile()"></button>
+                <button id="asUpgBtn" class="btn-full" style="margin-bottom:0; background: #81c784; color: #000; box-shadow: 0 4px 15px rgba(129,199,132,0.3); border: none;" onclick="upgradeAutosellerProfile()"></button>
             </div>
 
             <div class="glass-panel">
@@ -411,7 +442,7 @@
                     <label class="switch"><input type="checkbox" id="animMythic" onchange="toggleSetting('animMythic', this.checked)"><span class="slider"></span></label>
                 </div>
                 
-                <div style="font-size: 14px; text-align: center; margin-bottom: 10px; margin-top:20px;">Цвет интерфейса</div>
+                <div style="font-size: 11px; text-transform: uppercase; color: var(--text-muted); text-align: center; margin-bottom: 10px; margin-top:25px; letter-spacing: 1px;">Цвет интерфейса</div>
                 <div class="color-presets">
                     <div class="color-btn" style="background:#66fcf1; color:#66fcf1;" onclick="changeColor('#66fcf1', this)"></div>
                     <div class="color-btn" style="background:#ff4c4c; color:#ff4c4c;" onclick="changeColor('#ff4c4c', this)"></div>
@@ -447,35 +478,27 @@
             window.Telegram.WebApp.expand();
         }
 
-        // ==========================================
-        // БАЗА ДАННЫХ И КОНФИГИ
-        // ==========================================
         const OPERATORS = {
-            // МТС (MTS)
             "910": "МТС", "911": "МТС", "912": "МТС", "913": "МТС", "914": "МТС", "915": "МТС", "916": "МТС", "917": "МТС", "918": "МТС", "919": "МТС",
             "980": "МТС", "981": "МТС", "982": "МТС", "983": "МТС", "984": "МТС", "985": "МТС", "986": "МТС", "987": "МТС", "988": "МТС", "989": "МТС",
-            // МегаФон (MegaFon)
             "920": "МегаФон", "921": "МегаФон", "922": "МегаФон", "923": "МегаФон", "924": "МегаФон", "925": "МегаФон", "926": "МегаФон", "927": "МегаФон", "928": "МегаФон", "929": "МегаФон",
             "930": "МегаФон", "931": "МегаФон", "932": "МегаФон", "933": "МегаФон", "934": "МегаФон", "935": "МегаФон", "936": "МегаФон", "937": "МегаФон", "938": "МегаФон", "939": "МегаФон",
-            // Билайн (Beeline)
             "903": "Билайн", "905": "Билайн", "906": "Билайн", "909": "Билайн",
             "960": "Билайн", "961": "Билайн", "962": "Билайн", "963": "Билайн", "964": "Билайн", "965": "Билайн", "966": "Билайн", "967": "Билайн", "968": "Билайн", "969": "Билайн",
-            // Tele2
             "901": "Tele2", "902": "Tele2", "904": "Tele2", "908": "Tele2",
             "950": "Tele2", "951": "Tele2", "952": "Tele2", "953": "Tele2", "958": "Tele2", "977": "Tele2",
             "991": "Tele2", "992": "Tele2", "993": "Tele2", "994": "Tele2",
-            // MVNO & Others
             "995": "Т-Мобайл", "996": "Yota", "999": "Yota (VIP-код)", "900": "СберМобайл",
             "954": "Мотив", "970": "Yota", "971": "Yota", "990": "Телетай", "955": "Т-Мобайл"
         };
 
         const RARITIES = {
-            common: { id: 'common', name: 'Обычный', color: '#b0bec5', bg: 'linear-gradient(135deg, #37474f, #263238)' },
-            uncommon: { id: 'uncommon', name: 'Необычный', color: '#81c784', bg: 'linear-gradient(135deg, #2e7d32, #1b5e20)' },
-            rare: { id: 'rare', name: 'Редкий', color: '#64b5f6', bg: 'linear-gradient(135deg, #1565c0, #0d47a1)' },
-            epic: { id: 'epic', name: 'Эпический', color: '#ba68c8', bg: 'linear-gradient(135deg, #6a1b9a, #4a148c)' },
-            legendary: { id: 'legendary', name: 'Легендарный', color: '#ffca28', bg: 'linear-gradient(135deg, #ff8f00, #ff6f00)' },
-            mythic: { id: 'mythic', name: 'Мифический', color: '#ff5252', bg: 'linear-gradient(135deg, #d50000, #b71c1c)' }
+            common: { id: 'common', name: 'Обычный', color: '#b0bec5', bg: 'linear-gradient(135deg, #37474f, #263238)', min: 250, max: 750 },
+            uncommon: { id: 'uncommon', name: 'Необычный', color: '#81c784', bg: 'linear-gradient(135deg, #2e7d32, #1b5e20)', min: 1000, max: 2500 },
+            rare: { id: 'rare', name: 'Редкий', color: '#64b5f6', bg: 'linear-gradient(135deg, #1565c0, #0d47a1)', min: 5000, max: 12000 },
+            epic: { id: 'epic', name: 'Эпический', color: '#ba68c8', bg: 'linear-gradient(135deg, #6a1b9a, #4a148c)', min: 25000, max: 60000 },
+            legendary: { id: 'legendary', name: 'Легендарный', color: '#ffca28', bg: 'linear-gradient(135deg, #ff8f00, #ff6f00)', min: 150000, max: 400000 },
+            mythic: { id: 'mythic', name: 'Мифический', color: '#ff5252', bg: 'linear-gradient(135deg, #d50000, #b71c1c)', min: 1500000, max: 5000000 }
         };
 
         const CAPACITY_LEVELS = [20, 100, 250, 500, 750, 1000];
@@ -493,9 +516,9 @@
             autoseller: { id: 'autoseller', name: 'Автоселлер', desc: 'Продает номера при 100% заполнении.', maxLevel: 1, baseCost: 25000, mult: 1, curr: 'rub' }
         };
 
-        const SAVE_KEY = 'simgacha_save_v21'; 
+        const SAVE_KEY = 'simgacha_save_v24'; 
         const defaultState = {
-            version: 21, balance: 10000, euro: 0, collection: [], equipped: null,
+            version: 24, balance: 10000, euro: 0, collection: [], equipped: null,
             stats: { generated: 0, earned: 0, earnedEuro: 0, rarities: { common: 0, uncommon: 0, rare: 0, epic: 0, legendary: 0, mythic: 0 } },
             upgrades: { capacity: 0, luck: 0, autoseller: 0 },
             market: { active: false, rarityId: null, mult: 1 },
@@ -524,7 +547,7 @@
             return `+7 (${pref}) ${tail.slice(0,3)}-${tail.slice(3,5)}-${tail.slice(5,7)}`;
         }
 
-        // --- ЕДИНЫЙ ЦЕНТР ОЦЕНКИ И КОМБО (V21) ---
+        // --- ЕДИНЫЙ ЦЕНТР ОЦЕНКИ И КОМБО (V24) ---
         function evaluatePhoneNumber(numberStr) {
             const digits10 = (numberStr || "").replace(/\D/g, '').slice(-10) || "9990000000";
             const prefix = digits10.slice(0, 3);
@@ -532,49 +555,45 @@
             
             let patternsFound = [];
 
-            // 1. ОЦЕНКА КОДА ОПЕРАТОРА (Независимая корзина)
+            // 1. ОЦЕНКА КОДА ОПЕРАТОРА
             let operatorScore = 0;
             let opCombo = null;
             if (/(.)\1{2}/.test(prefix)) { operatorScore = 150; opCombo = { name: 'Код: Премиум (XXX)', score: 150, desc: 'Три одинаковые цифры в коде.' }; }
             else if (prefix[0] === prefix[2]) { operatorScore = 40; opCombo = { name: 'Код: Красивый (ABA)', score: 40, desc: 'Симметричный код оператора.' }; }
-            else if (/(.)\1/.test(prefix)) { operatorScore = 15; opCombo = { name: 'Код: Парный', score: 15, desc: 'Пара одинаковых цифр в коде.' }; }
+            else if (/(.)\1/.test(prefix)) { operatorScore = 5; opCombo = { name: 'Код: Парный', score: 5, desc: 'Пара одинаковых цифр в коде (На цену влияет мало).' }; }
 
             // 2. ОЦЕНКА АБОНЕНТСКОЙ ЧАСТИ
             if (/(.)\1{6}/.test(tail)) patternsFound.push({ name: '👑 Бриллиант (7 од.)', score: 5000, desc: 'Все 7 цифр абонента совпадают.' });
             else if (/(.)\1{5}/.test(tail)) patternsFound.push({ name: '💎 Платина (6 од.)', score: 1500, desc: '6 одинаковых цифр подряд.' });
-            else if (/(.)\1{4}/.test(tail)) patternsFound.push({ name: '🥇 Золотой (5 од.)', score: 500, desc: '5 одинаковых цифр подряд.' });
+            else if (/(.)\1{4}/.test(tail)) patternsFound.push({ name: '🥇 Золотой (5 од.)', score: 400, desc: '5 одинаковых цифр подряд.' });
             else if (/(.)\1{3}/.test(tail)) patternsFound.push({ name: '🥈 Серебряный (4 од.)', score: 150, desc: '4 одинаковые цифры подряд.' });
             else if (/(.)\1{2}/.test(tail)) patternsFound.push({ name: '🥉 Бронзовый (3 од.)', score: 30, desc: '3 одинаковые цифры подряд.' });
 
             if (/0123456|1234567|2345678|3456789|9876543|8765432|7654321|6543210/.test(tail)) patternsFound.push({ name: '🎢 Идеальная лесенка', score: 1000, desc: 'Все 7 цифр идут по порядку.' });
-            else if (/(012345|123456|234567|345678|456789|987654|876543|765432|654321|543210)/.test(tail)) patternsFound.push({ name: '📈 Длинная лесенка', score: 400, desc: '6 цифр идут по порядку.' });
-            else if (/(01234|12345|23456|34567|45678|56789|98765|87654|76543|65432|54321|43210)/.test(tail)) patternsFound.push({ name: '📉 Средняя лесенка', score: 120, desc: '5 цифр идут по порядку.' });
-            else if (/(0123|1234|2345|3456|4567|5678|6789|9876|8765|7654|6543|5432|4321|3210)/.test(tail)) patternsFound.push({ name: '📶 Малая лесенка', score: 40, desc: 'Фрагмент из 4 цифр по порядку.' });
-            // НОВОЕ: Микро-лесенка (3 цифры)
-            else if (/(012|123|234|345|456|567|678|789|987|876|765|654|543|432|321|210)/.test(tail)) patternsFound.push({ name: '🪜 Микро-лесенка', score: 20, desc: '3 цифры идут по порядку.' });
+            else if (/(012345|123456|234567|345678|456789|987654|876543|765432|654321|543210)/.test(tail)) patternsFound.push({ name: '📈 Длинная лесенка', score: 300, desc: '6 цифр идут по порядку.' });
+            else if (/(01234|12345|23456|34567|45678|56789|98765|87654|76543|65432|54321|43210)/.test(tail)) patternsFound.push({ name: '📉 Средняя лесенка', score: 100, desc: '5 цифр идут по порядку.' });
+            else if (/(0123|1234|2345|3456|4567|5678|6789|9876|8765|7654|6543|5432|4321|3210)/.test(tail)) patternsFound.push({ name: '📶 Малая лесенка', score: 30, desc: 'Фрагмент из 4 цифр по порядку.' });
+            else if (/(012|123|234|345|456|567|678|789|987|876|765|654|543|432|321|210)/.test(tail)) patternsFound.push({ name: '🪜 Микро-лесенка', score: 5, desc: '3 цифры идут по порядку.' });
 
             if (tail === tail.split('').reverse().join('')) patternsFound.push({ name: '🪞 Абсолютный палиндром', score: 300, desc: 'Номер читается одинаково с обеих сторон.' });
-            if (/(\d{3})\1/.test(tail)) patternsFound.push({ name: '🔁 Двойной ритм (ABCABC)', score: 250, desc: 'Тройной блок повторяется дважды.' });
+            if (/(\d{3})\1/.test(tail)) patternsFound.push({ name: '🔁 Двойной ритм (ABCABC)', score: 200, desc: 'Тройной блок повторяется дважды.' });
             if (/(.)(?!\1)(.)\1\2/.test(tail)) patternsFound.push({ name: '🪘 Ритм (ABAB)', score: 120, desc: 'Эффектное чередование цифр.' });
-            if (/(.)\1(?!\1)(.)\2/.test(tail)) patternsFound.push({ name: '🎭 Парный ритм (AABB)', score: 60, desc: 'Две пары идут подряд.' });
-            if (/(.)(?!\1)(.)\2\1/.test(tail)) patternsFound.push({ name: '🪞 Зеркало (ABBA)', score: 50, desc: 'Зеркальное отражение 4-х цифр.' });
-            // НОВОЕ: Эхо-блок (XX...XX)
-            if (/(\d{2}).*\1/.test(tail) && !/(\d{3})\1/.test(tail) && !/(.)\1{3}/.test(tail)) patternsFound.push({ name: '🔗 Эхо-блок (XX..XX)', score: 35, desc: 'Повторение двухзначного блока цифр.' });
-            // НОВОЕ: Микро-радар (ABA)
-            if (/(.)(?!\1)(.)\1/.test(tail) && !/(.)(?!\1)(.)\2\1/.test(tail)) patternsFound.push({ name: '📡 Микро-радар (ABA)', score: 15, desc: 'Короткая зеркальная комбинация из 3 цифр.' });
+            if (/(.)\1(?!\1)(.)\2/.test(tail)) patternsFound.push({ name: '🎭 Парный ритм (AABB)', score: 50, desc: 'Две пары идут подряд.' });
+            if (/(.)(?!\1)(.)\2\1/.test(tail)) patternsFound.push({ name: '🪞 Зеркало (ABBA)', score: 40, desc: 'Зеркальное отражение 4-х цифр.' });
+            if (/(\d{2}).*\1/.test(tail) && !/(\d{3})\1/.test(tail) && !/(.)\1{3}/.test(tail)) patternsFound.push({ name: '🔗 Эхо-блок', score: 15, desc: 'Повторение двухзначного блока цифр.' });
+            if (/(.)(?!\1)(.)\1/.test(tail) && !/(.)(?!\1)(.)\2\1/.test(tail)) patternsFound.push({ name: '📡 Микро-радар (ABA)', score: 5, desc: 'Короткая зеркальная комбинация.' });
 
-            // НОВОЕ: Подсчет всех пар во всем номере (10 цифр)
             let totalPairs = (digits10.match(/(.)\1/g) || []).length;
-            if (totalPairs >= 4) patternsFound.push({ name: '🎰 Четыре пары', score: 150, desc: 'Уникальный ритм: 4 пары во всем номере.' });
-            else if (totalPairs === 3) patternsFound.push({ name: '🎲 Три пары', score: 70, desc: 'Три пары одинаковых цифр в номере.' });
-            else if (totalPairs === 2 && !/(.)\1{2}/.test(digits10)) patternsFound.push({ name: '👯 Две пары', score: 30, desc: 'Наличие двух пар в номере.' });
-            else if (totalPairs === 1 && !/(.)\1{2}/.test(digits10)) patternsFound.push({ name: '👯 Одна пара', score: 10, desc: 'Случайное совпадение двух цифр.' });
+            if (totalPairs >= 4) patternsFound.push({ name: '🎰 Четыре пары', score: 100, desc: 'Уникальный ритм: 4 пары во всем номере.' });
+            else if (totalPairs === 3) patternsFound.push({ name: '🎲 Три пары', score: 40, desc: 'Три пары одинаковых цифр в номере.' });
+            else if (totalPairs === 2 && !/(.)\1{2}/.test(digits10)) patternsFound.push({ name: '👯 Две пары', score: 10, desc: 'Наличие двух пар в номере.' });
+            else if (totalPairs === 1 && !/(.)\1{2}/.test(digits10)) patternsFound.push({ name: '👯 Одна пара', score: 0, desc: 'Случайное совпадение. (Не влияет на редкость)' });
 
             if (/0000$/.test(tail)) patternsFound.push({ name: '🎯 Мега-тысячник (0000)', score: 200, desc: 'Номер заканчивается на 4 нуля.' });
             else if (/000$/.test(tail)) patternsFound.push({ name: '🎯 Тысячник (000)', score: 50, desc: 'Номер заканчивается на 3 нуля.' });
 
             let yyCount = (tail.match(/69/g) || []).length;
-            if (yyCount > 0) patternsFound.push({ name: `☯ Инь и Ян (x${yyCount})`, score: 25 * yyCount, desc: 'Содержит популярную комбинацию 69.' });
+            if (yyCount > 0) patternsFound.push({ name: `☯ Инь и Ян (x${yyCount})`, score: 0, desc: 'Содержит популярную комбинацию 69. Даёт +15% к финальной цене.' });
 
             // 3. РАСЧЕТ ИНДЕКСА КРАСОТЫ (Убывающая отдача только для абонентской части)
             patternsFound.sort((a, b) => b.score - a.score); 
@@ -610,12 +629,15 @@
             let rarityData = RARITIES[rarityId];
 
             // 5. РАСЧЕТ РЫНОЧНОЙ ЦЕНЫ
-            let hash = digits10.split('').reduce((acc, char, i) => acc + char.charCodeAt(0) * (i + 1), 0);
+            let hash = numberStr.split('').reduce((acc, char, i) => acc + char.charCodeAt(0) * (i + 1), 0);
             let pseudoRandom = Math.abs(Math.sin(hash)); 
             
-            let basePrice = 100 + Math.floor(pseudoRandom * 200); 
-            let beautyValue = Math.floor(totalScore * 50 * (1 + totalScore/100)); 
-            let finalPrice = basePrice + beautyValue;
+            let rMin = rarityData && rarityData.min ? rarityData.min : 250;
+            let rMax = rarityData && rarityData.max ? rarityData.max : 750;
+
+            let priceBase = rMin + Math.floor(pseudoRandom * (rMax - rMin));
+            let beautyValue = Math.floor(totalScore * 30 * (1 + totalScore/150)); 
+            let finalPrice = priceBase + beautyValue;
 
             if (yyCount > 0) finalPrice = Math.floor(finalPrice * (1 + 0.15 * yyCount));
             if (finalPrice > 10 && finalPrice % 10 === 0) finalPrice += Math.floor((pseudoRandom * 9)) + 1;
@@ -630,13 +652,13 @@
                 rarityId: rarityId,
                 basePrice: finalPrice,
                 score: totalScore,
-                source: 'Локальная алгоритмическая модель (v21)'
+                source: 'Локальная алгоритмическая модель (v24)'
             };
         }
 
-        // --- МИГРАЦИЯ НА V21 (Микро-паттерны и глобальный счетчик пар) ---
-        if(state.version !== 21) {
-            console.log("Migration to v21: Global Pairs & Micro Patterns...");
+        // --- МИГРАЦИЯ НА V24 (ИСПРАВЛЕНИЕ NaN БАГА И ЭКОНОМИКИ) ---
+        if(state.version !== 24) {
+            console.log("Migration to v24: Dynamic Economy & Fix NaN falls...");
             if(typeof state.balance !== 'number' || isNaN(state.balance)) state.balance = defaultState.balance;
             if(typeof state.euro !== 'number' || isNaN(state.euro)) state.euro = 0;
             
@@ -644,7 +666,7 @@
                 if (!item.number) item.number = "+7 (999) 000-00-00"; 
                 let evalData = evaluatePhoneNumber(item.number);
                 item.rarity = RARITIES[evalData.rarityId] || RARITIES['common'];
-                item.baseDynamicPrice = evalData.basePrice || 100;
+                item.baseDynamicPrice = evalData.basePrice; // No fallback needed
                 item.desc = evalData.primaryPatternName;
                 item.comboLines = evalData.comboLines;
                 item.score = evalData.score;
@@ -655,47 +677,18 @@
                 if (!state.equipped.number) state.equipped.number = "+7 (999) 000-00-00";
                 let eqEval = evaluatePhoneNumber(state.equipped.number);
                 state.equipped.rarity = RARITIES[eqEval.rarityId] || RARITIES['common'];
-                state.equipped.baseDynamicPrice = eqEval.basePrice || 100;
+                state.equipped.baseDynamicPrice = eqEval.basePrice;
                 state.equipped.desc = eqEval.primaryPatternName;
                 state.equipped.comboLines = eqEval.comboLines;
                 state.equipped.score = eqEval.score;
                 state.equipped.operator = eqEval.operatorName;
             }
 
-            state.version = 21;
+            state.version = 24;
             localStorage.setItem(SAVE_KEY, JSON.stringify(state));
         }
 
         function saveGame() { localStorage.setItem(SAVE_KEY, JSON.stringify(state)); }
-
-        // --- ТЕСТОВЫЙ РЕЖИМ ---
-        window.runSimTest = function() {
-            console.log("🚀 Запуск симуляции 100,000 истинно случайных генераций...");
-            let s = { common: 0, uncommon: 0, rare: 0, epic: 0, legendary: 0, mythic: 0, zerosCount: 0, zerosUpgraded: 0 };
-            
-            for(let i=0; i<100000; i++) {
-                let num = generateTrueRandomNumber();
-                let ev = evaluatePhoneNumber(num);
-                s[ev.rarityId]++;
-                
-                let tail = num.replace(/\D/g, '').slice(-7);
-                if (/000$/.test(tail)) {
-                    s.zerosCount++;
-                    if (ev.rarityId !== 'common') s.zerosUpgraded++;
-                }
-            }
-            
-            console.log("=== Результаты 100k случайных генераций ===");
-            console.log(`Обычные (Common): ${s.common} шт. (${(s.common/1000).toFixed(2)}%)`);
-            console.log(`Необычные (Uncommon): ${s.uncommon} шт. (${(s.uncommon/1000).toFixed(2)}%)`);
-            console.log(`Редкие (Rare): ${s.rare} шт. (${(s.rare/1000).toFixed(2)}%)`);
-            console.log(`Эпические (Epic): ${s.epic} шт. (${(s.epic/1000).toFixed(2)}%)`);
-            console.log(`Легендарные (Legendary): ${s.legendary} шт. (${(s.legendary/1000).toFixed(3)}%)`);
-            console.log(`Мифические (Mythic): ${s.mythic} шт. (${(s.mythic/1000).toFixed(4)}%)`);
-            console.log(`---`);
-            console.log(`Номеров с 000 на конце: ${s.zerosCount}`);
-            console.log(`Из них стали редкими/эпиками (за счет комбо): ${s.zerosUpgraded}`);
-        };
 
         // --- ИНТЕРФЕЙС И ВЗАИМОДЕЙСТВИЕ ---
         let isAnimating = false;
@@ -769,7 +762,7 @@
             if (Math.random() < 0.4) {
                 state.market.active = false;
                 document.getElementById('marketTicker').innerHTML = `⚖️ Рынок стабилен | Комиссия: 15%`;
-                document.getElementById('marketTicker').style.color = 'var(--text-main)';
+                document.getElementById('marketTicker').style.color = 'var(--text-muted)';
             } else {
                 state.market.active = true;
                 const rkeys = Object.keys(RARITIES);
@@ -883,19 +876,17 @@
             setTimeout(() => { if(el.parentNode) el.remove(); }, 600);
         }
 
-        // --- ОТКРЫТИЕ ПО КЛИКУ НА НОМЕР ---
+        // --- ОБРАБОТЧИК КЛИКОВ (БЕЗ GHOST CLICKS) ---
+        function handleWrapperClick(e) {
+            if (e.target.id === 'simNumber') { return; } // Клик по номеру обрабатывается отдельно
+            generateSim();
+        }
+
         function inspectLastSim(e) {
-            e.stopPropagation(); 
+            e.stopPropagation();
             if (lastGeneratedSim && !isAnimating) {
                 openModal(lastGeneratedSim.id);
             }
-        }
-
-        function handleTouch(e) { 
-            if(e.target.id !== 'simNumber') { 
-                e.preventDefault(); 
-                generateSim(); 
-            } 
         }
 
         function generateSim() {
@@ -957,7 +948,7 @@
                 if (lastGeneratedSim) spawnSkippedAnimation(lastGeneratedSim);
 
                 let luckLvl = state.upgrades.luck || 0;
-                let rollsCount = 1 + luckLvl * 2; 
+                let rollsCount = 1 + luckLvl; 
                 
                 let bestEval = null;
 
@@ -1123,7 +1114,7 @@
                 document.getElementById('modalFinalPrice').innerText = `+${profitObj.rub.toLocaleString()} ₽`;
             }
 
-            document.getElementById('modalSource').innerText = `Источник оценки: Локальная алгоритмическая модель (v21)`;
+            document.getElementById('modalSource').innerText = `Источник оценки: Локальная алгоритмическая модель (v24)`;
 
             const btnEq = document.getElementById('modalEquipBtn');
             btnEq.innerText = isEq ? 'СНЯТЬ НОМЕР' : 'НАДЕТЬ НОМЕР';
@@ -1187,7 +1178,7 @@
             });
 
             if(items.length === 0) {
-                grid.innerHTML = '<div style="grid-column:1/-1; text-align:center; color:#777; padding:20px;">Коллекция пуста</div>'; return;
+                grid.innerHTML = '<div style="grid-column:1/-1; text-align:center; color:var(--text-muted); padding:20px;">Коллекция пуста</div>'; return;
             }
 
             items.forEach(item => {
@@ -1197,7 +1188,7 @@
                 const div = document.createElement('div');
                 div.className = 'card'; 
                 div.style.borderTopColor = item.rarity.color;
-                if(isEq) div.style.boxShadow = `0 0 10px ${item.rarity.color} inset`;
+                if(isEq) div.style.boxShadow = `0 0 15px ${item.rarity.color} inset`;
                 
                 let pText = `+${profitObj.rub.toLocaleString()} ₽`;
                 if(item.rarity.id === 'mythic') pText += `<br><span style="color:#81c784">+${profitObj.eur.toLocaleString()} €</span>`;
@@ -1295,10 +1286,10 @@
                     <div class="upgrade-card">
                         <div>
                             <div style="font-weight:bold; margin-bottom:5px; color:${upg.curr === 'eur' ? '#81c784' : '#fff'};">${upg.name}</div>
-                            <div style="font-size:12px; color:#aaa;">${descText}</div>
+                            <div style="font-size:12px; color:var(--text-muted);">${descText}</div>
                             <div style="font-size:12px; color:var(--accent); margin-top:5px;">Уровень: ${lvl}/${upg.maxLevel}</div>
                         </div>
-                        <button class="btn-upg" style="${upg.curr === 'eur' ? 'background:#81c784;' : ''}" onclick="buyUpgrade('${key}')" ${isMax || (upg.curr==='rub'?state.balance:state.euro) < cost ? 'disabled' : ''}>
+                        <button class="btn-upg" style="${upg.curr === 'eur' ? 'background:#81c784; box-shadow: 0 4px 15px rgba(129,199,132,0.3);' : 'box-shadow: 0 4px 15px rgba(102,252,241,0.3);'}" onclick="buyUpgrade('${key}')" ${isMax || (upg.curr==='rub'?state.balance:state.euro) < cost ? 'disabled' : ''}>
                             ${isMax ? 'МАКС' : cost.toLocaleString() + ' ' + currSymbol}
                         </button>
                     </div>
