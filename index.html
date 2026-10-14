@@ -63,12 +63,13 @@
         }
 
         .balance-info {
-            position: fixed; top: 95px; width: 100%; text-align: center; z-index: 90;
+            position: fixed; top: 90px; width: 100%; text-align: center; z-index: 90;
         }
         .balance-val { font-size: 28px; font-weight: bold; color: #ffd700; text-shadow: 0 0 10px rgba(255,215,0,0.5); }
+        .balance-euro { font-size: 18px; font-weight: bold; color: #81c784; text-shadow: 0 0 10px rgba(129,199,132,0.5); margin-top: 3px; display: none; }
 
         #toast-container {
-            position: fixed; top: 150px; left: 50%; transform: translateX(-50%);
+            position: fixed; top: 160px; left: 50%; transform: translateX(-50%);
             display: flex; flex-direction: column; align-items: center; gap: 10px;
             z-index: 1000; pointer-events: none; width: 90%;
         }
@@ -89,7 +90,6 @@
 
         .generator-container { display: flex; flex-direction: column; align-items: center; position: relative; }
         
-        /* Анимация пропущенных карт */
         #history-container {
             position: absolute; top: -50px; width: 100%; height: 150px;
             pointer-events: none; display: flex; flex-direction: column; align-items: center; z-index: 10;
@@ -120,7 +120,6 @@
             transition: transform 0.1s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.1s;
         }
         
-        /* Анимация нажатия */
         .sim-card.pressed {
             transform: scale(0.92) !important;
             box-shadow: inset 0 0 20px rgba(0,0,0,0.8) !important;
@@ -130,7 +129,6 @@
             box-shadow: 0 0 40px var(--accent);
             animation: shake 0.5s;
         }
-
         @keyframes shake {
             0% { transform: translateX(0); }
             25% { transform: translateX(-5px); }
@@ -138,24 +136,59 @@
             75% { transform: translateX(-5px); }
             100% { transform: translateX(0); }
         }
+
+        .mythic-flash {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: radial-gradient(circle, rgba(255,82,82,0.4) 0%, transparent 80%);
+            pointer-events: none; z-index: 15;
+            animation: flashFade 2.5s ease-out forwards;
+        }
+        @keyframes flashFade { 0% { opacity: 1; } 100% { opacity: 0; } }
+
+        .sim-card.mythic-glow {
+            animation: mythicVibrate 0.1s infinite, mythicPulse 1.5s infinite;
+            border: 2px solid #ff5252;
+            box-shadow: 0 0 80px #ff5252, inset 0 0 40px #ff0000;
+        }
+        @keyframes mythicVibrate {
+            0% { transform: translate(0, 0); }
+            50% { transform: translate(-2px, 2px); }
+            100% { transform: translate(2px, -2px); }
+        }
+        @keyframes mythicPulse {
+            0% { filter: hue-rotate(0deg) brightness(1); }
+            50% { filter: hue-rotate(20deg) brightness(1.3); }
+            100% { filter: hue-rotate(0deg) brightness(1); }
+        }
         
         .sim-chip {
             width: 50px; height: 70px; background: linear-gradient(135deg, #ffd700, #daa520);
             border-radius: 8px; margin-top: 50px; border: 1px solid #b8860b; pointer-events: none;
         }
         .sim-logo { position: absolute; bottom: 80px; font-weight: 900; letter-spacing: 4px; color: rgba(255,255,255,0.05); font-size: 28px; pointer-events: none;}
+        
+        /* КЛИКАБЕЛЬНЫЙ НОМЕР */
         .sim-number {
             position: absolute; bottom: 30px; font-size: 16px; font-family: 'Courier New', monospace;
-            background: rgba(0,0,0,0.5); padding: 8px 15px; border-radius: 10px; font-weight: bold; pointer-events: none;
+            background: rgba(0,0,0,0.5); padding: 8px 15px; border-radius: 10px; font-weight: bold; 
+            cursor: pointer; pointer-events: auto; z-index: 25; border: 1px solid transparent; transition: 0.2s;
         }
+        .sim-number:hover { border-color: var(--accent); box-shadow: 0 0 10px var(--accent); }
+        .sim-number::after {
+            content: "🔍 Нажми"; position: absolute; top: -20px; left: 50%; transform: translateX(-50%);
+            font-size: 10px; color: var(--accent); opacity: 0; transition: 0.2s; white-space: nowrap; font-family: sans-serif;
+        }
+        .sim-number:hover::after { opacity: 1; }
         
-        .click-hint { color: var(--text-main); font-size: 12px; text-transform: uppercase; letter-spacing: 2px; margin-top: 10px; animation: blink 2s infinite; }
+        .click-hint { color: var(--text-main); font-size: 12px; text-transform: uppercase; letter-spacing: 2px; margin-top: 10px; animation: blink 2s infinite; pointer-events: none;}
         @keyframes blink { 0%, 100% { opacity: 0.3; } 50% { opacity: 1; } }
 
-        .result-panel { text-align: center; min-height: 80px; margin-top: 10px; }
+        .result-panel { text-align: center; min-height: 90px; margin-top: 10px; pointer-events: none;}
         #rarityLabel { font-size: 22px; font-weight: bold; margin-bottom: 5px; text-transform: uppercase; letter-spacing: 1px; }
         #priceLabel { font-size: 18px; color: #ffd700; font-weight: bold; font-family: monospace; }
+        #euroLabel { font-size: 16px; color: #81c784; font-weight: bold; font-family: monospace; margin-top: 2px; display: none;}
         #descLabel { font-size: 12px; color: var(--text-main); margin-top: 5px; font-style: italic; min-height: 15px;}
+        #operatorLabel { font-size: 11px; color: var(--text-muted); margin-top: 3px; font-weight: bold; letter-spacing: 0.5px; }
 
         .glass-panel {
             background: var(--glass-bg); border: 1px solid var(--glass-border);
@@ -201,11 +234,10 @@
         .btn-upg { background: var(--accent); border: none; border-radius: 8px; color: #000; padding: 10px 15px; font-weight: bold; cursor: pointer; }
         .btn-upg:disabled { background: #333; color: #777; }
         
-        .stat-item { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 14px; }
+        .stat-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 14px; }
         .stat-item:last-child { border-bottom: none; }
         .stat-header { font-size: 12px; color: var(--accent); text-transform: uppercase; margin-top: 15px; margin-bottom: 5px; font-weight: bold; }
 
-        /* Модальное окно детализации номера */
         .modal-overlay {
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0,0,0,0.8); z-index: 200; justify-content: center; align-items: center;
@@ -214,17 +246,16 @@
         .modal-overlay.active { display: flex; animation: fadeIn 0.2s; }
         .modal-content {
             background: linear-gradient(135deg, #1f2833, #0b0c10); border: 1px solid var(--glass-border);
-            padding: 25px 20px; border-radius: 20px; width: 85%; max-width: 350px;
+            padding: 25px 20px; border-radius: 20px; width: 90%; max-width: 380px; max-height: 90vh; overflow-y: auto;
             text-align: center; box-shadow: 0 15px 35px rgba(0,0,0,0.6); position: relative;
         }
         .modal-close {
             position: absolute; top: 15px; right: 15px; background: none; border: none;
-            color: #fff; font-size: 24px; cursor: pointer; opacity: 0.6;
+            color: #fff; font-size: 24px; cursor: pointer; opacity: 0.6; z-index: 10;
         }
         .modal-close:hover { opacity: 1; }
         .modal-btn { width: 100%; padding: 12px; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; margin-bottom: 10px; font-size: 14px; }
     
-        /* Настройки цветов */
         .color-presets { display: flex; gap: 10px; justify-content: center; margin-top: 10px; }
         .color-btn { width: 30px; height: 30px; border-radius: 50%; cursor: pointer; border: 2px solid transparent; transition: 0.2s; }
         .color-btn.active { border-color: #fff; transform: scale(1.1); box-shadow: 0 0 10px currentColor; }
@@ -235,6 +266,12 @@
         .slider:before { position: absolute; content: ""; height: 16px; width: 16px; left: 2px; bottom: 2px; background-color: white; transition: .4s; border-radius: 50%; }
         input:checked + .slider { background-color: var(--accent); }
         input:checked + .slider:before { transform: translateX(20px); }
+        
+        .eval-source { font-size: 11px; color: var(--text-muted); margin-top: 15px; border-top: 1px solid var(--glass-border); padding-top: 10px; }
+        .combo-box { background: rgba(0,0,0,0.3); border-radius: 8px; padding: 10px; text-align: left; font-size: 12px; margin-bottom: 15px; border: 1px solid var(--glass-border); color: var(--text-main); }
+        .combo-line { margin-bottom: 5px; border-bottom: 1px dashed rgba(255,255,255,0.05); padding-bottom: 5px; }
+        .combo-line:last-child { margin-bottom: 0; border-bottom: none; padding-bottom: 0; }
+        .combo-name { font-weight: bold; color: #fff; }
     </style>
 </head>
 <body>
@@ -249,22 +286,36 @@
     <div id="marketTicker">⚖️ Рынок стабилен</div>
     <div class="balance-info">
         <div class="balance-val"><span id="headerBalance">0</span> ₽</div>
-        <div id="genCostHint" style="font-size:12px; color:var(--text-main); margin-top:5px;">Стоимость SIM: 500 ₽</div>
+        <div class="balance-euro" id="headerEuroContainer"><span id="headerEuro">0</span> €</div>
+        <div id="genCostHint" style="font-size:12px; color:var(--text-main); margin-top:5px;">Стоимость SIM: 1 000 ₽</div>
     </div>
 
     <div id="toast-container"></div>
 
     <div id="simModal" class="modal-overlay" onclick="if(event.target===this) closeModal()">
-        <div class="modal-content">
+        <div class="modal-content" onclick="event.stopPropagation()">
             <button class="modal-close" onclick="closeModal()">×</button>
             <div id="modalRarity" style="font-size: 12px; text-transform: uppercase; margin-bottom: 5px; font-weight: bold;"></div>
-            <div id="modalNumber" style="font-size: 24px; font-weight: bold; font-family: 'Courier New', monospace; margin-bottom: 15px;"></div>
+            <div id="modalNumber" style="font-size: 26px; font-weight: bold; font-family: 'Courier New', monospace; margin-bottom: 15px; text-shadow: 0 0 10px rgba(255,255,255,0.2);"></div>
             
             <div style="background: rgba(255,255,255,0.05); border-radius: 10px; padding: 15px; margin-bottom: 20px; border: 1px solid var(--glass-border);">
-                <div id="modalDesc" style="font-size: 14px; color: var(--text-bright); margin-bottom: 10px;"></div>
-                <div id="modalMultiplier" style="font-size: 14px; color: var(--accent); font-weight: bold; margin-bottom: 10px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px;"></div>
+                
+                <div style="display: flex; justify-content: space-between; font-size: 12px; color: var(--text-main); margin-bottom: 10px;">
+                    <span>Оператор:</span> <span id="modalOperator" style="font-weight:bold; color:var(--accent);"></span>
+                </div>
+                
+                <div style="display: flex; justify-content: space-between; font-size: 12px; color: var(--text-main); margin-bottom: 10px;">
+                    <span>Индекс красоты:</span> <span id="modalBeautyIndex" style="font-weight:bold; color:#fff;"></span>
+                </div>
+
+                <div class="combo-box" id="modalComboLines">
+                    <!-- Заполняется JS -->
+                </div>
+                
+                <div id="modalMultiplier" style="font-size: 13px; color: var(--accent); font-weight: bold; margin-bottom: 10px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px; text-align: left;"></div>
+                
                 <div style="display: flex; justify-content: space-between; font-size: 12px; color: var(--text-main); margin-bottom: 5px;">
-                    <span>Цена на рынке:</span> <span id="modalBasePrice"></span>
+                    <span>Оценка рынка:</span> <span id="modalBasePrice"></span>
                 </div>
                 <div style="display: flex; justify-content: space-between; font-size: 12px; color: var(--danger); margin-bottom: 5px;">
                     <span>Комиссия (15%):</span> <span id="modalComm"></span>
@@ -272,6 +323,7 @@
                 <div style="display: flex; justify-content: space-between; font-size: 18px; color: #ffd700; font-weight: bold; margin-top: 10px;">
                     <span>Прибыль:</span> <span id="modalFinalPrice"></span>
                 </div>
+                <div id="modalSource" class="eval-source"></div>
             </div>
 
             <div>
@@ -286,18 +338,22 @@
         <div id="tab-gen" class="tab-content active">
             <div class="generator-container">
                 <div id="history-container"></div>
+                <!-- Обертка генерирует номер по клику -->
                 <div class="sim-wrapper" id="simWrapper" onmousedown="generateSim()" ontouchstart="handleTouch(event)">
                     <div class="sim-card" id="simCard">
                         <div class="sim-chip"></div>
                         <div class="sim-logo">PREMIUM</div>
-                        <div class="sim-number" id="simNumber">+7 (***) ***-**-**</div>
+                        <!-- ВНИМАНИЕ: Сам номер перехватывает клик и открывает модалку! -->
+                        <div class="sim-number" id="simNumber" onmousedown="inspectLastSim(event)" ontouchstart="inspectLastSim(event)">+7 (***) ***-**-**</div>
                     </div>
                 </div>
-                <div class="click-hint">Кликай быстро!</div>
-                <div class="result-panel">
+                <div class="click-hint">Кликай по карте быстро!</div>
+                <div class="result-panel" id="resultPanel">
                     <div id="rarityLabel"></div>
                     <div id="priceLabel"></div>
+                    <div id="euroLabel"></div>
                     <div id="descLabel"></div>
+                    <div id="operatorLabel"></div>
                 </div>
             </div>
         </div>
@@ -334,18 +390,28 @@
                 <div id="profEquipped" style="font-size: 22px; font-family: monospace; font-weight: bold; margin-top: 10px; color: var(--accent);">Нет номера</div>
             </div>
 
+            <div class="glass-panel" id="autosellerProfilePanel" style="display: none; border: 1px solid #81c784; box-shadow: inset 0 0 20px rgba(129,199,132,0.1);">
+                <h3 style="margin-top:0; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px; color: #81c784;">🤖 Автоселлер</h3>
+                <div id="asStatus" style="font-size: 13px; margin-bottom: 15px; color: var(--text-main); line-height: 1.5;"></div>
+                <button id="asUpgBtn" class="btn-action primary" style="margin-bottom:0; background: #81c784; color: #000;" onclick="upgradeAutosellerProfile()"></button>
+            </div>
+
             <div class="glass-panel">
-                <h3 style="margin-top:0; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px;">Настройки</h3>
-                
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-                    <span style="font-size: 14px;">Быстрые генерации (Отключить анимации)</span>
-                    <label class="switch">
-                        <input type="checkbox" id="animToggle" onchange="toggleAnim(this)">
-                        <span class="slider"></span>
-                    </label>
+                <h3 style="margin-top:0; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px;">Анимации выпадения</h3>
+                <div class="stat-item">
+                    <span>Анимация Эпических</span>
+                    <label class="switch"><input type="checkbox" id="animEpic" onchange="toggleSetting('animEpic', this.checked)"><span class="slider"></span></label>
+                </div>
+                <div class="stat-item">
+                    <span>Анимация Легендарных</span>
+                    <label class="switch"><input type="checkbox" id="animLegendary" onchange="toggleSetting('animLegendary', this.checked)"><span class="slider"></span></label>
+                </div>
+                <div class="stat-item">
+                    <span>Анимация Мифических</span>
+                    <label class="switch"><input type="checkbox" id="animMythic" onchange="toggleSetting('animMythic', this.checked)"><span class="slider"></span></label>
                 </div>
                 
-                <div style="font-size: 14px; text-align: center; margin-bottom: 10px;">Цвет интерфейса</div>
+                <div style="font-size: 14px; text-align: center; margin-bottom: 10px; margin-top:20px;">Цвет интерфейса</div>
                 <div class="color-presets">
                     <div class="color-btn" style="background:#66fcf1; color:#66fcf1;" onclick="changeColor('#66fcf1', this)"></div>
                     <div class="color-btn" style="background:#ff4c4c; color:#ff4c4c;" onclick="changeColor('#ff4c4c', this)"></div>
@@ -359,7 +425,8 @@
                 <h3 style="margin-top:0; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px;">Статистика бизнеса</h3>
                 
                 <div class="stat-item"><span>Всего генераций:</span><strong id="profTotalGens">0</strong></div>
-                <div class="stat-item"><span>Общий доход:</span><strong id="profTotalEarned" style="color: #ffd700">0 ₽</strong></div>
+                <div class="stat-item"><span>Общий доход (₽):</span><strong id="profTotalEarned" style="color: #ffd700">0 ₽</strong></div>
+                <div class="stat-item"><span>Общий доход (€):</span><strong id="profTotalEuro" style="color: #81c784">0 €</strong></div>
                 
                 <div class="stat-header">Редкости номеров</div>
                 <div class="stat-item"><span>Обычные:</span><strong id="stat-common">0</strong></div>
@@ -368,14 +435,6 @@
                 <div class="stat-item"><span>Эпические:</span><strong id="stat-epic">0</strong></div>
                 <div class="stat-item"><span>Легендарные:</span><strong id="stat-legendary">0</strong></div>
                 <div class="stat-item"><span>Мифические:</span><strong id="stat-mythic">0</strong></div>
-
-                <div class="stat-header">Редкие паттерны</div>
-                <div class="stat-item"><span>👑 Бриллиант (7 одинаковых):</span><strong id="stat-diamond">0</strong></div>
-                <div class="stat-item"><span>💎 Платина (6 подряд):</span><strong id="stat-platinum">0</strong></div>
-                <div class="stat-item"><span>✨ Флеш (5 подряд):</span><strong id="stat-flash">0</strong></div>
-                <div class="stat-item"><span>🃏 Каре (4 подряд):</span><strong id="stat-kare">0</strong></div>
-                <div class="stat-item"><span>🎲 Тройная пара (Бабочка):</span><strong id="stat-butterfly">0</strong></div>
-                <div class="stat-item"><span>🎯 Три нуля на конце:</span><strong id="stat-zeros">0</strong></div>
             </div>
 
             <button class="btn-full danger" style="margin-top: 10px;" onclick="resetProgress()">Сбросить весь прогресс (Удалить сейв)</button>
@@ -388,6 +447,28 @@
             window.Telegram.WebApp.expand();
         }
 
+        // ==========================================
+        // БАЗА ДАННЫХ И КОНФИГИ
+        // ==========================================
+        const OPERATORS = {
+            // МТС (MTS)
+            "910": "МТС", "911": "МТС", "912": "МТС", "913": "МТС", "914": "МТС", "915": "МТС", "916": "МТС", "917": "МТС", "918": "МТС", "919": "МТС",
+            "980": "МТС", "981": "МТС", "982": "МТС", "983": "МТС", "984": "МТС", "985": "МТС", "986": "МТС", "987": "МТС", "988": "МТС", "989": "МТС",
+            // МегаФон (MegaFon)
+            "920": "МегаФон", "921": "МегаФон", "922": "МегаФон", "923": "МегаФон", "924": "МегаФон", "925": "МегаФон", "926": "МегаФон", "927": "МегаФон", "928": "МегаФон", "929": "МегаФон",
+            "930": "МегаФон", "931": "МегаФон", "932": "МегаФон", "933": "МегаФон", "934": "МегаФон", "935": "МегаФон", "936": "МегаФон", "937": "МегаФон", "938": "МегаФон", "939": "МегаФон",
+            // Билайн (Beeline)
+            "903": "Билайн", "905": "Билайн", "906": "Билайн", "909": "Билайн",
+            "960": "Билайн", "961": "Билайн", "962": "Билайн", "963": "Билайн", "964": "Билайн", "965": "Билайн", "966": "Билайн", "967": "Билайн", "968": "Билайн", "969": "Билайн",
+            // Tele2
+            "901": "Tele2", "902": "Tele2", "904": "Tele2", "908": "Tele2",
+            "950": "Tele2", "951": "Tele2", "952": "Tele2", "953": "Tele2", "958": "Tele2", "977": "Tele2",
+            "991": "Tele2", "992": "Tele2", "993": "Tele2", "994": "Tele2",
+            // MVNO & Others
+            "995": "Т-Мобайл", "996": "Yota", "999": "Yota (VIP-код)", "900": "СберМобайл",
+            "954": "Мотив", "970": "Yota", "971": "Yota", "990": "Телетай", "955": "Т-Мобайл"
+        };
+
         const RARITIES = {
             common: { id: 'common', name: 'Обычный', color: '#b0bec5', bg: 'linear-gradient(135deg, #37474f, #263238)' },
             uncommon: { id: 'uncommon', name: 'Необычный', color: '#81c784', bg: 'linear-gradient(135deg, #2e7d32, #1b5e20)' },
@@ -398,40 +479,225 @@
         };
 
         const CAPACITY_LEVELS = [20, 100, 250, 500, 750, 1000];
+        const AUTOSELLER_CONFIG = {
+            1: { cost: 25000, sells: ['common'], name: 'Обычные' },
+            2: { cost: 150000, sells: ['common', 'uncommon'], name: 'Обычные, Необычные' },
+            3: { cost: 750000, sells: ['common', 'uncommon', 'rare'], name: 'Вплоть до Редких' },
+            4: { cost: 2, sells: ['common', 'uncommon', 'rare', 'epic'], name: 'Вплоть до Эпических', isEur: true },
+            5: { cost: 10, sells: ['common', 'uncommon', 'rare', 'epic', 'legendary'], name: 'Вплоть до Легендарных', isEur: true }
+        };
 
         const UPGRADES = {
-            capacity: { id: 'capacity', name: 'Сервер хранения', desc: 'Увеличивает вместимость сейфа', maxLevel: 5, baseCost: 10000, mult: 3.5 },
-            luck: { id: 'luck', name: 'Связи у оператора', desc: 'Повышает шанс редких номеров', maxLevel: 5, baseCost: 30000, mult: 4 }
+            capacity: { id: 'capacity', name: 'Сервер хранения', desc: 'Увеличивает вместимость сейфа', maxLevel: 5, baseCost: 10000, mult: 4, curr: 'rub' },
+            luck: { id: 'luck', name: 'Связи у оператора', desc: 'Лучший выбор при генерации', maxLevel: 5, baseCost: 50000, mult: 4, curr: 'rub' },
+            autoseller: { id: 'autoseller', name: 'Автоселлер', desc: 'Продает номера при 100% заполнении.', maxLevel: 1, baseCost: 25000, mult: 1, curr: 'rub' }
         };
 
-        const SAVE_KEY = 'simgacha_save_v7';
+        const SAVE_KEY = 'simgacha_save_v21'; 
         const defaultState = {
-            balance: 5000, collection: [], equipped: null,
-            stats: { 
-                generated: 0, earned: 0,
-                rarities: { common: 0, uncommon: 0, rare: 0, epic: 0, legendary: 0, mythic: 0 },
-                patterns: { diamond: 0, platinum: 0, flash: 0, kare: 0, butterfly: 0, doublePair: 0, zeros: 0 }
-            },
-            upgrades: { capacity: 0, luck: 0 },
+            version: 21, balance: 10000, euro: 0, collection: [], equipped: null,
+            stats: { generated: 0, earned: 0, earnedEuro: 0, rarities: { common: 0, uncommon: 0, rare: 0, epic: 0, legendary: 0, mythic: 0 } },
+            upgrades: { capacity: 0, luck: 0, autoseller: 0 },
             market: { active: false, rarityId: null, mult: 1 },
-            settings: { fastMode: false, color: '#66fcf1' }
+            settings: { color: '#66fcf1', animEpic: true, animLegendary: true, animMythic: true }
         };
 
-        let savedData = localStorage.getItem(SAVE_KEY);
-        let state = savedData ? JSON.parse(savedData) : JSON.parse(JSON.stringify(defaultState));
-        
-        if(!state.stats.rarities) state.stats.rarities = { common: 0, uncommon: 0, rare: 0, epic: 0, legendary: 0, mythic: 0 };
-        if(!state.stats.patterns) state.stats.patterns = { diamond: 0, platinum: 0, flash: 0, kare: 0, butterfly: 0, doublePair: 0, zeros: 0 };
-        if(!state.settings) state.settings = { fastMode: false, color: '#66fcf1' };
+        let state;
+        try { state = localStorage.getItem(SAVE_KEY) ? JSON.parse(localStorage.getItem(SAVE_KEY)) : JSON.parse(JSON.stringify(defaultState)); } 
+        catch (e) { state = JSON.parse(JSON.stringify(defaultState)); }
+
+        // --- ИСТИННЫЙ РАНДОМ ---
+        function trueRandomDigit() {
+            if (window.crypto && window.crypto.getRandomValues) {
+                let array = new Uint8Array(1);
+                window.crypto.getRandomValues(array);
+                return array[0] % 10;
+            }
+            return Math.floor(Math.random() * 10);
+        }
+
+        function generateTrueRandomNumber() {
+            const prefixes = Object.keys(OPERATORS);
+            const pref = prefixes[Math.floor(Math.random() * prefixes.length)];
+            let tail = "";
+            for(let i = 0; i < 7; i++) tail += trueRandomDigit();
+            return `+7 (${pref}) ${tail.slice(0,3)}-${tail.slice(3,5)}-${tail.slice(5,7)}`;
+        }
+
+        // --- ЕДИНЫЙ ЦЕНТР ОЦЕНКИ И КОМБО (V21) ---
+        function evaluatePhoneNumber(numberStr) {
+            const digits10 = (numberStr || "").replace(/\D/g, '').slice(-10) || "9990000000";
+            const prefix = digits10.slice(0, 3);
+            const tail = digits10.slice(3); 
+            
+            let patternsFound = [];
+
+            // 1. ОЦЕНКА КОДА ОПЕРАТОРА (Независимая корзина)
+            let operatorScore = 0;
+            let opCombo = null;
+            if (/(.)\1{2}/.test(prefix)) { operatorScore = 150; opCombo = { name: 'Код: Премиум (XXX)', score: 150, desc: 'Три одинаковые цифры в коде.' }; }
+            else if (prefix[0] === prefix[2]) { operatorScore = 40; opCombo = { name: 'Код: Красивый (ABA)', score: 40, desc: 'Симметричный код оператора.' }; }
+            else if (/(.)\1/.test(prefix)) { operatorScore = 15; opCombo = { name: 'Код: Парный', score: 15, desc: 'Пара одинаковых цифр в коде.' }; }
+
+            // 2. ОЦЕНКА АБОНЕНТСКОЙ ЧАСТИ
+            if (/(.)\1{6}/.test(tail)) patternsFound.push({ name: '👑 Бриллиант (7 од.)', score: 5000, desc: 'Все 7 цифр абонента совпадают.' });
+            else if (/(.)\1{5}/.test(tail)) patternsFound.push({ name: '💎 Платина (6 од.)', score: 1500, desc: '6 одинаковых цифр подряд.' });
+            else if (/(.)\1{4}/.test(tail)) patternsFound.push({ name: '🥇 Золотой (5 од.)', score: 500, desc: '5 одинаковых цифр подряд.' });
+            else if (/(.)\1{3}/.test(tail)) patternsFound.push({ name: '🥈 Серебряный (4 од.)', score: 150, desc: '4 одинаковые цифры подряд.' });
+            else if (/(.)\1{2}/.test(tail)) patternsFound.push({ name: '🥉 Бронзовый (3 од.)', score: 30, desc: '3 одинаковые цифры подряд.' });
+
+            if (/0123456|1234567|2345678|3456789|9876543|8765432|7654321|6543210/.test(tail)) patternsFound.push({ name: '🎢 Идеальная лесенка', score: 1000, desc: 'Все 7 цифр идут по порядку.' });
+            else if (/(012345|123456|234567|345678|456789|987654|876543|765432|654321|543210)/.test(tail)) patternsFound.push({ name: '📈 Длинная лесенка', score: 400, desc: '6 цифр идут по порядку.' });
+            else if (/(01234|12345|23456|34567|45678|56789|98765|87654|76543|65432|54321|43210)/.test(tail)) patternsFound.push({ name: '📉 Средняя лесенка', score: 120, desc: '5 цифр идут по порядку.' });
+            else if (/(0123|1234|2345|3456|4567|5678|6789|9876|8765|7654|6543|5432|4321|3210)/.test(tail)) patternsFound.push({ name: '📶 Малая лесенка', score: 40, desc: 'Фрагмент из 4 цифр по порядку.' });
+            // НОВОЕ: Микро-лесенка (3 цифры)
+            else if (/(012|123|234|345|456|567|678|789|987|876|765|654|543|432|321|210)/.test(tail)) patternsFound.push({ name: '🪜 Микро-лесенка', score: 20, desc: '3 цифры идут по порядку.' });
+
+            if (tail === tail.split('').reverse().join('')) patternsFound.push({ name: '🪞 Абсолютный палиндром', score: 300, desc: 'Номер читается одинаково с обеих сторон.' });
+            if (/(\d{3})\1/.test(tail)) patternsFound.push({ name: '🔁 Двойной ритм (ABCABC)', score: 250, desc: 'Тройной блок повторяется дважды.' });
+            if (/(.)(?!\1)(.)\1\2/.test(tail)) patternsFound.push({ name: '🪘 Ритм (ABAB)', score: 120, desc: 'Эффектное чередование цифр.' });
+            if (/(.)\1(?!\1)(.)\2/.test(tail)) patternsFound.push({ name: '🎭 Парный ритм (AABB)', score: 60, desc: 'Две пары идут подряд.' });
+            if (/(.)(?!\1)(.)\2\1/.test(tail)) patternsFound.push({ name: '🪞 Зеркало (ABBA)', score: 50, desc: 'Зеркальное отражение 4-х цифр.' });
+            // НОВОЕ: Эхо-блок (XX...XX)
+            if (/(\d{2}).*\1/.test(tail) && !/(\d{3})\1/.test(tail) && !/(.)\1{3}/.test(tail)) patternsFound.push({ name: '🔗 Эхо-блок (XX..XX)', score: 35, desc: 'Повторение двухзначного блока цифр.' });
+            // НОВОЕ: Микро-радар (ABA)
+            if (/(.)(?!\1)(.)\1/.test(tail) && !/(.)(?!\1)(.)\2\1/.test(tail)) patternsFound.push({ name: '📡 Микро-радар (ABA)', score: 15, desc: 'Короткая зеркальная комбинация из 3 цифр.' });
+
+            // НОВОЕ: Подсчет всех пар во всем номере (10 цифр)
+            let totalPairs = (digits10.match(/(.)\1/g) || []).length;
+            if (totalPairs >= 4) patternsFound.push({ name: '🎰 Четыре пары', score: 150, desc: 'Уникальный ритм: 4 пары во всем номере.' });
+            else if (totalPairs === 3) patternsFound.push({ name: '🎲 Три пары', score: 70, desc: 'Три пары одинаковых цифр в номере.' });
+            else if (totalPairs === 2 && !/(.)\1{2}/.test(digits10)) patternsFound.push({ name: '👯 Две пары', score: 30, desc: 'Наличие двух пар в номере.' });
+            else if (totalPairs === 1 && !/(.)\1{2}/.test(digits10)) patternsFound.push({ name: '👯 Одна пара', score: 10, desc: 'Случайное совпадение двух цифр.' });
+
+            if (/0000$/.test(tail)) patternsFound.push({ name: '🎯 Мега-тысячник (0000)', score: 200, desc: 'Номер заканчивается на 4 нуля.' });
+            else if (/000$/.test(tail)) patternsFound.push({ name: '🎯 Тысячник (000)', score: 50, desc: 'Номер заканчивается на 3 нуля.' });
+
+            let yyCount = (tail.match(/69/g) || []).length;
+            if (yyCount > 0) patternsFound.push({ name: `☯ Инь и Ян (x${yyCount})`, score: 25 * yyCount, desc: 'Содержит популярную комбинацию 69.' });
+
+            // 3. РАСЧЕТ ИНДЕКСА КРАСОТЫ (Убывающая отдача только для абонентской части)
+            patternsFound.sort((a, b) => b.score - a.score); 
+            let tailScore = 0;
+            let comboLines = [];
+            let comboMult = 1.0;
+
+            if (opCombo) {
+                comboLines.push({ name: opCombo.name, points: opCombo.score, desc: opCombo.desc });
+            }
+
+            if (patternsFound.length === 0) {
+                patternsFound.push({ name: 'Обычный номер', score: 0, desc: 'Случайная комбинация без особенностей.' });
+            }
+
+            patternsFound.forEach((p, idx) => {
+                let actualPoints = Math.floor(p.score * comboMult);
+                tailScore += actualPoints;
+                comboLines.push({ name: p.name, points: actualPoints, desc: p.desc });
+                comboMult *= 0.5; 
+            });
+
+            let totalScore = operatorScore + tailScore;
+
+            // 4. ОПРЕДЕЛЕНИЕ РЕДКОСТИ
+            let rarityId = 'common';
+            if (totalScore >= 4000) rarityId = 'mythic';
+            else if (totalScore >= 1000) rarityId = 'legendary';
+            else if (totalScore >= 250) rarityId = 'epic';
+            else if (totalScore >= 100) rarityId = 'rare';
+            else if (totalScore >= 40) rarityId = 'uncommon';
+            
+            let rarityData = RARITIES[rarityId];
+
+            // 5. РАСЧЕТ РЫНОЧНОЙ ЦЕНЫ
+            let hash = digits10.split('').reduce((acc, char, i) => acc + char.charCodeAt(0) * (i + 1), 0);
+            let pseudoRandom = Math.abs(Math.sin(hash)); 
+            
+            let basePrice = 100 + Math.floor(pseudoRandom * 200); 
+            let beautyValue = Math.floor(totalScore * 50 * (1 + totalScore/100)); 
+            let finalPrice = basePrice + beautyValue;
+
+            if (yyCount > 0) finalPrice = Math.floor(finalPrice * (1 + 0.15 * yyCount));
+            if (finalPrice > 10 && finalPrice % 10 === 0) finalPrice += Math.floor((pseudoRandom * 9)) + 1;
+
+            let opName = OPERATORS[prefix] || "Федеральный оператор";
+
+            return {
+                number: numberStr,
+                operatorName: opName,
+                primaryPatternName: comboLines[0] ? comboLines[0].name : "Обычный номер",
+                comboLines: comboLines,
+                rarityId: rarityId,
+                basePrice: finalPrice,
+                score: totalScore,
+                source: 'Локальная алгоритмическая модель (v21)'
+            };
+        }
+
+        // --- МИГРАЦИЯ НА V21 (Микро-паттерны и глобальный счетчик пар) ---
+        if(state.version !== 21) {
+            console.log("Migration to v21: Global Pairs & Micro Patterns...");
+            if(typeof state.balance !== 'number' || isNaN(state.balance)) state.balance = defaultState.balance;
+            if(typeof state.euro !== 'number' || isNaN(state.euro)) state.euro = 0;
+            
+            state.collection.forEach(item => {
+                if (!item.number) item.number = "+7 (999) 000-00-00"; 
+                let evalData = evaluatePhoneNumber(item.number);
+                item.rarity = RARITIES[evalData.rarityId] || RARITIES['common'];
+                item.baseDynamicPrice = evalData.basePrice || 100;
+                item.desc = evalData.primaryPatternName;
+                item.comboLines = evalData.comboLines;
+                item.score = evalData.score;
+                item.operator = evalData.operatorName;
+            });
+
+            if(state.equipped) {
+                if (!state.equipped.number) state.equipped.number = "+7 (999) 000-00-00";
+                let eqEval = evaluatePhoneNumber(state.equipped.number);
+                state.equipped.rarity = RARITIES[eqEval.rarityId] || RARITIES['common'];
+                state.equipped.baseDynamicPrice = eqEval.basePrice || 100;
+                state.equipped.desc = eqEval.primaryPatternName;
+                state.equipped.comboLines = eqEval.comboLines;
+                state.equipped.score = eqEval.score;
+                state.equipped.operator = eqEval.operatorName;
+            }
+
+            state.version = 21;
+            localStorage.setItem(SAVE_KEY, JSON.stringify(state));
+        }
 
         function saveGame() { localStorage.setItem(SAVE_KEY, JSON.stringify(state)); }
 
-        function resetProgress() {
-            if (confirm("Вы уверены? Это удалит все ваши деньги и номера навсегда!")) {
-                localStorage.removeItem(SAVE_KEY); location.reload();
+        // --- ТЕСТОВЫЙ РЕЖИМ ---
+        window.runSimTest = function() {
+            console.log("🚀 Запуск симуляции 100,000 истинно случайных генераций...");
+            let s = { common: 0, uncommon: 0, rare: 0, epic: 0, legendary: 0, mythic: 0, zerosCount: 0, zerosUpgraded: 0 };
+            
+            for(let i=0; i<100000; i++) {
+                let num = generateTrueRandomNumber();
+                let ev = evaluatePhoneNumber(num);
+                s[ev.rarityId]++;
+                
+                let tail = num.replace(/\D/g, '').slice(-7);
+                if (/000$/.test(tail)) {
+                    s.zerosCount++;
+                    if (ev.rarityId !== 'common') s.zerosUpgraded++;
+                }
             }
-        }
+            
+            console.log("=== Результаты 100k случайных генераций ===");
+            console.log(`Обычные (Common): ${s.common} шт. (${(s.common/1000).toFixed(2)}%)`);
+            console.log(`Необычные (Uncommon): ${s.uncommon} шт. (${(s.uncommon/1000).toFixed(2)}%)`);
+            console.log(`Редкие (Rare): ${s.rare} шт. (${(s.rare/1000).toFixed(2)}%)`);
+            console.log(`Эпические (Epic): ${s.epic} шт. (${(s.epic/1000).toFixed(2)}%)`);
+            console.log(`Легендарные (Legendary): ${s.legendary} шт. (${(s.legendary/1000).toFixed(3)}%)`);
+            console.log(`Мифические (Mythic): ${s.mythic} шт. (${(s.mythic/1000).toFixed(4)}%)`);
+            console.log(`---`);
+            console.log(`Номеров с 000 на конце: ${s.zerosCount}`);
+            console.log(`Из них стали редкими/эпиками (за счет комбо): ${s.zerosUpgraded}`);
+        };
 
+        // --- ИНТЕРФЕЙС И ВЗАИМОДЕЙСТВИЕ ---
         let isAnimating = false;
         let currentGenId = 0; 
         let selectedTags = new Set();
@@ -440,19 +706,18 @@
         let lastGeneratedSim = null; 
 
         document.documentElement.style.setProperty('--accent', state.settings.color);
-        document.getElementById('animToggle').checked = state.settings.fastMode;
+        document.getElementById('animEpic').checked = state.settings.animEpic;
+        document.getElementById('animLegendary').checked = state.settings.animLegendary;
+        document.getElementById('animMythic').checked = state.settings.animMythic;
         
         function changeColor(hex, btnEl) {
-            state.settings.color = hex;
-            document.documentElement.style.setProperty('--accent', hex);
+            state.settings.color = hex; document.documentElement.style.setProperty('--accent', hex);
             document.querySelectorAll('.color-btn').forEach(b => b.classList.remove('active'));
-            if(btnEl) btnEl.classList.add('active');
-            saveGame();
+            if(btnEl) btnEl.classList.add('active'); saveGame();
         }
-        function toggleAnim(cb) {
-            state.settings.fastMode = cb.checked;
-            saveGame();
-        }
+
+        function toggleSetting(key, val) { state.settings[key] = val; saveGame(); }
+
         setTimeout(() => {
             document.querySelectorAll('.color-btn').forEach(b => {
                 if(b.style.backgroundColor === state.settings.color || b.style.backgroundColor.replace(/ /g, '') === state.settings.color.replace(/ /g, '')) {
@@ -475,16 +740,19 @@
             setTimeout(() => { if(toast.parentElement) toast.parentElement.removeChild(toast); if(lastToastMsg === msg) lastToastMsg = ""; }, 2000);
         }
 
-        function getMaxCapacity() { 
-            return CAPACITY_LEVELS[state.upgrades.capacity] || CAPACITY_LEVELS[CAPACITY_LEVELS.length - 1]; 
-        }
-        function getGenCost() { return 500; } 
+        function getMaxCapacity() { return CAPACITY_LEVELS[state.upgrades.capacity] || CAPACITY_LEVELS[CAPACITY_LEVELS.length - 1]; }
+        function getGenCost() { return 1000; } 
         function getCommissionPercent() { return 15; } 
         
         function updateBalanceUI() {
             document.getElementById('headerBalance').innerText = state.balance.toLocaleString('ru-RU');
+            if (state.euro > 0) {
+                document.getElementById('headerEuroContainer').style.display = 'block';
+                document.getElementById('headerEuro').innerText = state.euro.toLocaleString('ru-RU');
+            }
             document.getElementById('colCapacityCount').innerText = `${state.collection.length}/${getMaxCapacity()}`;
             document.getElementById('colCapacityCount').style.color = state.collection.length >= getMaxCapacity() ? 'var(--danger)' : 'var(--accent)';
+            document.getElementById('genCostHint').innerText = `Стоимость SIM: ${getGenCost().toLocaleString('ru-RU')} ₽`;
         }
 
         function switchTab(tabId, btn) {
@@ -518,62 +786,23 @@
         }
         setInterval(updateMarket, 30000);
 
-        function generateNumberFormat(rarityId) {
-            let p = () => Math.floor(Math.random() * 10);
-            let pref = "9" + p() + p();
-            if (rarityId === 'mythic') return `+7 (${pref}) 777-77-77`; 
-            if (rarityId === 'legendary') { let d = p(); return `+7 (${pref}) ${p()}${d}${d}-${d}${d}-${d}${p()}`; }
-            if (rarityId === 'epic') { let d = p(); return `+7 (${pref}) ${p()}${d}${d}-${d}${d}-${p()}${p()}`; }
-            if (rarityId === 'rare') { let d1 = p(), d2 = p(), d3 = p(); return `+7 (${pref}) ${p()}${d1}${d1}-${d2}${d2}-${d3}${d3}`; }
-            if (rarityId === 'uncommon') { let d1 = p(), d2 = p(); return `+7 (${pref}) ${p()}${p()}${p()}-${d1}${d1}-${d2}${d2}`; }
-            return `+7 (${pref}) ${p()}${p()}${p()}-${p()}${p()}-${p()}${p()}`; 
-        }
-
-        // ДЕЛАЕМ ЦЕНЫ НЕКРУГЛЫМИ
-        function makeLivePrice(num) {
-            if (num <= 10) return num;
-            if (num % 10 === 0) return num + Math.floor(Math.random() * 9) + 1;
-            return num;
-        }
-
-        function calculateDynamicData(number, rarityId) {
-            let min, max;
-            if (rarityId === 'mythic') { min = 1500000; max = 3000000; }
-            else if (rarityId === 'legendary') { min = 120000; max = 300000; }
-            else if (rarityId === 'epic') { min = 20000; max = 50000; }
-            else if (rarityId === 'rare') { min = 4000; max = 9000; }
-            else if (rarityId === 'uncommon') { min = 800; max = 2000; }
-            else { min = 100; max = 300; }
-
-            let base = Math.floor(Math.random() * (max - min + 1)) + min;
-            let clean = number.replace(/\D/g, ''); 
-            let tail = clean.slice(-7);
-            
-            let desc = "Красивый номер для бизнеса";
-            let bonus = 1.0;
-            let patternId = null;
-
-            if (/(.)\1{6}/.test(tail)) { desc = "👑 Бриллиант (7 одинаковых)"; bonus = 3.0; patternId = 'diamond'; } 
-            else if (/(.)\1{5}/.test(tail)) { desc = "💎 Платина (6 подряд)"; bonus = 2.0; patternId = 'platinum'; } 
-            else if (/(.)\1{4}/.test(tail)) { desc = `✨ Флеш (5 подряд)`; bonus = 1.5; patternId = 'flash'; } 
-            else if (/(.)\1{3}/.test(tail)) { desc = `🃏 Каре (4 подряд)`; bonus = 1.25; patternId = 'kare'; } 
-            else if (/(.)\1(.)\2(.)\3/.test(tail)) { desc = "🎲 Тройная пара (Бабочка)"; bonus = 1.2; patternId = 'butterfly'; } 
-            else if (/(.)\1.*(.)\2/.test(tail)) { desc = "🎭 Двойная пара"; bonus = 1.1; patternId = 'doublePair'; } 
-            else if (/000$/.test(tail)) { desc = "🎯 Ровный: Три нуля в конце"; bonus = 1.15; patternId = 'zeros'; } 
-            else {
-                let sevens = (number.match(/7/g) || []).length;
-                if (sevens >= 3) { desc = `🍀 Счастливый (${sevens} семёрок)`; bonus = 1.1; } 
-                else if (rarityId === 'common' || rarityId === 'uncommon') { desc = "Стандартный номер"; }
-            }
-
-            let finalPrice = makeLivePrice(Math.floor(base * bonus));
-            return { basePrice: finalPrice, desc: desc, bonus: bonus, patternId: patternId };
-        }
-
         function getMarketPrice(basePrice, rarityId) {
-            let p = basePrice;
+            let p = basePrice || 100;
             if(state.market.active && state.market.rarityId === rarityId) p = Math.floor(basePrice * state.market.mult);
-            return makeLivePrice(p);
+            return p;
+        }
+
+        function getSellProfit(item) {
+            let mPrice = getMarketPrice(item.baseDynamicPrice, item.rarity.id);
+            let totalRubProfit = Math.floor(mPrice * (1 - getCommissionPercent()/100));
+            let commLost = mPrice - totalRubProfit;
+            
+            if (item.rarity.id === 'mythic') {
+                let eurPart = Math.floor(totalRubProfit / 1000000);
+                let rubPart = totalRubProfit % 1000000; 
+                return { rub: rubPart, eur: eurPart, commLost: commLost, fullRubPrice: mPrice };
+            }
+            return { rub: totalRubProfit, eur: 0, commLost: commLost, fullRubPrice: mPrice };
         }
 
         function typeWriter(element, text, speed, genId) {
@@ -582,35 +811,53 @@
                 if (currentGenId !== genId) return; 
                 if (i < text.length) { 
                     element.innerHTML += text.charAt(i); 
-                    i++; 
-                    setTimeout(type, speed); 
+                    i++; setTimeout(type, speed); 
                 } 
             }
             type();
         }
 
-        function spinSlotAnimation(priceEl, numEl, finalPrice, finalNum, finalColor, duration, genId) {
+        function spinSlotAnimation(priceEl, euroEl, numEl, profitObj, isMythic, finalNum, finalColor, duration, genId) {
             let startTimestamp = null;
+            euroEl.style.display = 'none';
+
             const step = (timestamp) => {
                 if (currentGenId !== genId) return; 
 
                 if (!startTimestamp) startTimestamp = timestamp;
-                const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+                let progress = (timestamp - startTimestamp) / duration;
+                if (progress > 1) progress = 1;
                 
-                const easeOut = progress * (2 - progress); 
-                let currentPrice = Math.floor(easeOut * finalPrice);
+                const easeOut = 1 - Math.pow(1 - progress, 3);
+                
+                let targetPrice = isMythic ? profitObj.rub : profitObj.fullRubPrice; 
+                let currentPrice = Math.floor(easeOut * targetPrice) || 0;
+                
                 priceEl.innerText = currentPrice.toLocaleString('ru-RU') + ' ₽';
                 
                 if (progress < 1) {
-                    let p = () => Math.floor(Math.random() * 10);
-                    numEl.innerText = `+7 (9${p()}${p()}) ${p()}${p()}${p()}-${p()}${p()}-${p()}${p()}`;
+                    let revealedChars = Math.floor(easeOut * finalNum.length);
+                    let displayStr = "";
+                    for(let i = 0; i < finalNum.length; i++) {
+                        if (i < revealedChars || finalNum[i] === '+' || finalNum[i] === ' ' || finalNum[i] === '(' || finalNum[i] === ')' || finalNum[i] === '-') {
+                            displayStr += finalNum[i];
+                        } else {
+                            displayStr += Math.floor(Math.random() * 10);
+                        }
+                    }
+                    numEl.innerText = displayStr;
                     numEl.style.color = '#777'; 
-                    
                     window.requestAnimationFrame(step);
                 } else {
-                    priceEl.innerText = finalPrice.toLocaleString('ru-RU') + ' ₽';
+                    priceEl.innerText = (targetPrice || 0).toLocaleString('ru-RU') + ' ₽';
                     numEl.innerText = finalNum;
                     numEl.style.color = finalColor;
+
+                    if (isMythic) {
+                        euroEl.style.display = 'block';
+                        euroEl.innerText = "+ " + (profitObj.eur || 0).toLocaleString('ru-RU') + ' €';
+                    }
+                    isAnimating = false;
                 }
             };
             window.requestAnimationFrame(step);
@@ -622,19 +869,34 @@
             const el = document.createElement('div');
             el.className = 'skipped-item';
             
+            let displayPrice = getMarketPrice(simData.baseDynamicPrice, simData.rarity.id).toLocaleString() + ' ₽';
+
             el.innerHTML = `
                 <div class="skipped-label">Пропущено</div>
                 <div style="background: linear-gradient(135deg, #2a2a35, #1a1a25); border: 1px solid rgba(255,255,255,0.05); padding: 10px 15px; border-radius: 10px; text-align: center;">
                     <div style="font-size: 10px; color: ${simData.rarity.color}; margin-bottom: 3px;">${simData.rarity.name}</div>
                     <div style="font-family: monospace; font-size: 14px; font-weight: bold; color: #fff;">${simData.number}</div>
-                    <div style="font-size: 12px; color: var(--text-main); margin-top: 3px; opacity: 0.7;">${getMarketPrice(simData.baseDynamicPrice, simData.rarity.id).toLocaleString()} ₽</div>
+                    <div style="font-size: 12px; color: var(--text-main); margin-top: 3px; opacity: 0.7;">${displayPrice}</div>
                 </div>
             `;
             container.appendChild(el);
             setTimeout(() => { if(el.parentNode) el.remove(); }, 600);
         }
 
-        function handleTouch(e) { e.preventDefault(); generateSim(); }
+        // --- ОТКРЫТИЕ ПО КЛИКУ НА НОМЕР ---
+        function inspectLastSim(e) {
+            e.stopPropagation(); 
+            if (lastGeneratedSim && !isAnimating) {
+                openModal(lastGeneratedSim.id);
+            }
+        }
+
+        function handleTouch(e) { 
+            if(e.target.id !== 'simNumber') { 
+                e.preventDefault(); 
+                generateSim(); 
+            } 
+        }
 
         function generateSim() {
             if (isAnimating) return; 
@@ -643,137 +905,225 @@
             const thisGenId = currentGenId;
 
             const card = document.getElementById('simCard');
-            card.classList.remove('dramatic-glow'); 
+            card.classList.remove('dramatic-glow', 'mythic-glow'); 
+            document.getElementById('euroLabel').style.display = 'none';
 
             card.classList.add('pressed');
             setTimeout(() => card.classList.remove('pressed'), 100);
-
-            if (state.collection.length >= getMaxCapacity()) {
-                showToast('Коллекция переполнена! Продайте номера.', 'error');
-                return;
-            }
 
             const cost = getGenCost();
             if (state.balance < cost) {
                 let hasUnprotected = state.collection.some(i => !i.locked && (!state.equipped || state.equipped.id !== i.id));
                 if (!hasUnprotected) {
-                    state.balance += 1000; updateBalanceUI(); saveGame();
-                    showToast('Банкротство! Вы нашли заначку +1000 ₽', 'success'); return;
+                    state.balance += 2000; updateBalanceUI(); saveGame();
+                    showToast('Банкротство! Вы нашли заначку +2000 ₽', 'success'); return;
                 } else {
                     showToast('Мало денег! Продайте номера.', 'error'); return;
                 }
             }
 
-            state.balance -= cost; state.stats.generated++; updateBalanceUI();
+            if (state.collection.length >= getMaxCapacity()) {
+                if (state.upgrades.autoseller > 0) {
+                    let lvl = state.upgrades.autoseller;
+                    let allowed = AUTOSELLER_CONFIG[lvl].sells;
 
-            if (lastGeneratedSim) spawnSkippedAnimation(lastGeneratedSim);
+                    let soldRub = 0, soldEur = 0, count = 0, toKeep = [];
 
-            let luck = state.upgrades.luck * 0.01; 
-            const rand = Math.random();
-            let rIdx;
-            
-            if (rand < 0.0001 + (0.0001 * luck)) rIdx = 5; 
-            else if (rand < 0.002 + (0.001 * luck)) rIdx = 4; 
-            else if (rand < 0.015 + (0.005 * luck)) rIdx = 3; 
-            else if (rand < 0.10 + (0.02 * luck)) rIdx = 2; 
-            else if (rand < 0.35 + (0.05 * luck)) rIdx = 1; 
-            else rIdx = 0; 
+                    state.collection.forEach(item => {
+                        let isEq = state.equipped && state.equipped.id === item.id;
+                        if (!item.locked && !isEq && allowed.includes(item.rarity.id)) {
+                            let pObj = getSellProfit(item);
+                            soldRub += pObj.rub; soldEur += pObj.eur; count++;
+                        } else { toKeep.push(item); }
+                    });
 
-            let rarityId = Object.keys(RARITIES)[rIdx];
-            let rarity = RARITIES[rarityId];
-
-            state.stats.rarities[rarity.id] = (state.stats.rarities[rarity.id] || 0) + 1;
-
-            const number = generateNumberFormat(rarity.id);
-            const dynamicData = calculateDynamicData(number, rarity.id);
-            
-            if (dynamicData.patternId) {
-                state.stats.patterns[dynamicData.patternId] = (state.stats.patterns[dynamicData.patternId] || 0) + 1;
+                    if (count > 0) {
+                        state.balance += soldRub; state.stats.earned += soldRub;
+                        if(soldEur > 0) { state.euro += soldEur; state.stats.earnedEuro += soldEur; }
+                        state.collection = toKeep;
+                        showToast(`Автоселлер: продано ${count} шт (+${soldRub.toLocaleString()} ₽)`, 'success');
+                    } else {
+                        showToast('Сейф полон! Автоселлеру нечего продавать.', 'error');
+                        return;
+                    }
+                } else {
+                    showToast('Коллекция переполнена! Продайте номера.', 'error');
+                    return;
+                }
             }
 
-            const newSim = {
-                id: Date.now() + Math.random(),
-                number: number, rarity: rarity, locked: false,
-                baseDynamicPrice: dynamicData.basePrice, desc: dynamicData.desc, bonus: dynamicData.bonus
-            };
+            try {
+                state.balance -= cost; state.stats.generated++; updateBalanceUI();
+                if (lastGeneratedSim) spawnSkippedAnimation(lastGeneratedSim);
 
-            lastGeneratedSim = newSim; 
-
-            card.style.background = rarity.bg;
-            let rLabel = document.getElementById('rarityLabel');
-            rLabel.innerText = rarity.name; rLabel.style.color = rarity.color;
-            
-            let currentMarketPrice = getMarketPrice(newSim.baseDynamicPrice, rarity.id);
-            state.collection.unshift(newSim); 
-            
-            saveGame(); updateBalanceUI();
-
-            if (!state.settings.fastMode) {
-                let isJackpot = rIdx >= 3; 
-                let duration = isJackpot ? 1500 : 400; 
+                let luckLvl = state.upgrades.luck || 0;
+                let rollsCount = 1 + luckLvl * 2; 
                 
-                if (isJackpot) {
-                    isAnimating = true; 
-                    card.classList.add('dramatic-glow');
+                let bestEval = null;
+
+                for(let i=0; i<rollsCount; i++) {
+                    let number;
+                    let attempts = 0;
+                    do {
+                        number = generateTrueRandomNumber();
+                        attempts++;
+                    } while (state.collection.some(item => item.number === number) && attempts < 10);
+
+                    let currEval = evaluatePhoneNumber(number);
+                    if (!bestEval || currEval.score > bestEval.score) {
+                        bestEval = currEval;
+                    }
                 }
+
+                let finalRarityId = bestEval.rarityId;
+                let rarity = RARITIES[finalRarityId] || RARITIES['common'];
+
+                const newSim = {
+                    id: Date.now() + Math.random(),
+                    number: bestEval.number, 
+                    rarity: rarity, 
+                    locked: false,
+                    baseDynamicPrice: bestEval.basePrice, 
+                    desc: bestEval.primaryPatternName,
+                    comboLines: bestEval.comboLines,
+                    score: bestEval.score,
+                    operator: bestEval.operatorName
+                };
+
+                let profitObj = getSellProfit(newSim);
+
+                state.collection.unshift(newSim); 
+                lastGeneratedSim = newSim; 
+
+                card.style.background = rarity.bg;
+                let rLabel = document.getElementById('rarityLabel');
+                rLabel.innerText = rarity.name; rLabel.style.color = rarity.color;
                 
-                document.getElementById('descLabel').innerText = ''; 
-                if (window.navigator && window.navigator.vibrate) navigator.vibrate(isJackpot ? [100, 50, 100] : 10);
+                saveGame(); updateBalanceUI();
 
-                spinSlotAnimation(
-                    document.getElementById('priceLabel'), 
-                    document.getElementById('simNumber'), 
-                    currentMarketPrice, 
-                    newSim.number, 
-                    rarity.color, 
-                    duration,
-                    thisGenId
-                );
+                let shouldAnimate = false;
+                if (rarity.id === 'epic' && state.settings.animEpic) shouldAnimate = true;
+                if (rarity.id === 'legendary' && state.settings.animLegendary) shouldAnimate = true;
+                if (rarity.id === 'mythic' && state.settings.animMythic) shouldAnimate = true;
 
-                setTimeout(() => {
-                    if (!isJackpot && currentGenId !== thisGenId) return; 
+                if (shouldAnimate) {
+                    isAnimating = true; 
+                    let duration = (rarity.id === 'mythic') ? 2500 : 1500; 
+                    
+                    if (rarity.id === 'mythic') {
+                        card.classList.add('mythic-glow');
+                        let flash = document.createElement('div');
+                        flash.className = 'mythic-flash';
+                        document.body.appendChild(flash);
+                        setTimeout(()=>flash.remove(), 2500);
+                    } else {
+                        card.classList.add('dramatic-glow');
+                    }
+                    
+                    document.getElementById('descLabel').innerText = ''; 
+                    document.getElementById('operatorLabel').innerText = '';
+                    if (window.navigator && window.navigator.vibrate) navigator.vibrate(rarity.id==='mythic' ? [200, 100, 200, 100, 500] : [100, 50, 100]);
 
-                    if (isJackpot) {
+                    spinSlotAnimation(
+                        document.getElementById('priceLabel'), 
+                        document.getElementById('euroLabel'),
+                        document.getElementById('simNumber'), 
+                        profitObj, 
+                        rarity.id === 'mythic',
+                        newSim.number, 
+                        rarity.color, 
+                        duration,
+                        thisGenId
+                    );
+
+                    setTimeout(() => {
+                        if (currentGenId !== thisGenId) return; 
                         typeWriter(document.getElementById('descLabel'), newSim.desc, 30, thisGenId);
+                        document.getElementById('operatorLabel').innerText = newSim.operator;
                         setTimeout(() => { 
                             if (currentGenId !== thisGenId) return;
-                            card.classList.remove('dramatic-glow'); 
-                            isAnimating = false; 
+                            card.classList.remove('dramatic-glow', 'mythic-glow'); 
                         }, 1000);
-                    } else {
+                    }, duration);
+                } else {
+                    document.getElementById('descLabel').innerText = '';
+                    document.getElementById('operatorLabel').innerText = '';
+                    spinSlotAnimation(
+                        document.getElementById('priceLabel'), 
+                        document.getElementById('euroLabel'),
+                        document.getElementById('simNumber'), 
+                        profitObj, 
+                        rarity.id === 'mythic',
+                        newSim.number, 
+                        rarity.color, 
+                        400, 
+                        thisGenId
+                    );
+                    
+                    setTimeout(() => {
+                        if (currentGenId !== thisGenId) return; 
                         document.getElementById('descLabel').innerText = newSim.desc;
-                    }
-                }, duration);
-            } else {
-                document.getElementById('simNumber').innerText = newSim.number;
-                document.getElementById('simNumber').style.color = rarity.color;
-                document.getElementById('priceLabel').innerText = currentMarketPrice.toLocaleString('ru-RU') + ' ₽';
-                document.getElementById('descLabel').innerText = newSim.desc;
-                if (window.navigator && window.navigator.vibrate) navigator.vibrate(10);
+                        document.getElementById('operatorLabel').innerText = newSim.operator;
+                        if (window.navigator && window.navigator.vibrate) navigator.vibrate(10);
+                    }, 400);
+                }
+            } catch (e) {
+                console.error("Generator error", e);
+                isAnimating = false; 
+                showToast("Произошла ошибка при генерации", "error");
             }
         }
 
-        // --- МОДАЛЬНОЕ ОКНО ДЛЯ НОМЕРА ---
+        // --- МОДАЛЬНОЕ ОКНО ---
         function openModal(id) {
             const item = state.collection.find(i => i.id === id);
             if(!item) return;
             currentModalItemId = id;
 
             const isEq = state.equipped && state.equipped.id === id;
-            let mPrice = getMarketPrice(item.baseDynamicPrice, item.rarity.id);
-            let profit = makeLivePrice(Math.floor(mPrice * (1 - getCommissionPercent()/100)));
-            let commLost = mPrice - profit;
+            let profitObj = getSellProfit(item);
+            
+            if (!item.comboLines) {
+                let evalData = evaluatePhoneNumber(item.number);
+                item.comboLines = evalData.comboLines;
+                item.score = evalData.score;
+                item.operator = evalData.operatorName;
+            }
 
             document.getElementById('modalRarity').innerText = item.rarity.name;
             document.getElementById('modalRarity').style.color = item.rarity.color;
             document.getElementById('modalNumber').innerText = item.number;
             document.getElementById('modalNumber').style.color = item.rarity.color;
-            document.getElementById('modalDesc').innerText = item.desc;
-            document.getElementById('modalMultiplier').innerText = `Множитель паттерна: x${item.bonus || 1.0}`;
             
-            document.getElementById('modalBasePrice').innerText = `${mPrice.toLocaleString()} ₽`;
-            document.getElementById('modalComm').innerText = `${commLost.toLocaleString()} ₽`;
-            document.getElementById('modalFinalPrice').innerText = `+${profit.toLocaleString()} ₽`;
+            document.getElementById('modalOperator').innerText = item.operator || "Федеральный оператор";
+            document.getElementById('modalBeautyIndex').innerText = item.score + " pts";
+            
+            let comboBox = document.getElementById('modalComboLines');
+            comboBox.innerHTML = '';
+            item.comboLines.forEach(line => {
+                comboBox.innerHTML += `
+                    <div class="combo-line">
+                        <div style="display:flex; justify-content:space-between;">
+                            <span class="combo-name">${line.name}</span>
+                            <span style="color:var(--accent);">+${line.points}</span>
+                        </div>
+                        <div style="color:var(--text-muted); margin-top:2px;">${line.desc}</div>
+                    </div>
+                `;
+            });
+            
+            document.getElementById('modalMultiplier').innerText = `Рыночный множитель: x${state.market.active && state.market.rarityId === item.rarity.id ? state.market.mult : 1.0}`;
+            
+            document.getElementById('modalBasePrice').innerText = `${profitObj.fullRubPrice.toLocaleString()} ₽`;
+            document.getElementById('modalComm').innerText = `${profitObj.commLost.toLocaleString()} ₽`;
+            
+            if (item.rarity.id === 'mythic') {
+                document.getElementById('modalFinalPrice').innerHTML = `+${profitObj.rub.toLocaleString()} ₽ <br> <span style="color:#81c784">+${profitObj.eur.toLocaleString()} €</span>`;
+            } else {
+                document.getElementById('modalFinalPrice').innerText = `+${profitObj.rub.toLocaleString()} ₽`;
+            }
+
+            document.getElementById('modalSource').innerText = `Источник оценки: Локальная алгоритмическая модель (v21)`;
 
             const btnEq = document.getElementById('modalEquipBtn');
             btnEq.innerText = isEq ? 'СНЯТЬ НОМЕР' : 'НАДЕТЬ НОМЕР';
@@ -812,17 +1162,18 @@
             
             if (item.locked || (state.equipped && state.equipped.id === currentModalItemId)) return;
             
-            let mPrice = getMarketPrice(item.baseDynamicPrice, item.rarity.id);
-            let profit = makeLivePrice(Math.floor(mPrice * (1 - getCommissionPercent()/100)));
+            let profitObj = getSellProfit(item);
             
-            state.balance += profit; state.stats.earned += profit;
+            state.balance += profitObj.rub; state.stats.earned += profitObj.rub;
+            if(profitObj.eur > 0) { state.euro += profitObj.eur; state.stats.earnedEuro += profitObj.eur; }
+
             state.collection.splice(idx, 1);
             
             saveGame(); updateBalanceUI(); renderCollection(); closeModal();
-            showToast(`Продано: +${profit.toLocaleString()} ₽`, 'success');
+            if(profitObj.eur > 0) showToast(`Продано: +${profitObj.rub.toLocaleString()} ₽ | +${profitObj.eur.toLocaleString()} €`, 'success');
+            else showToast(`Продано: +${profitObj.rub.toLocaleString()} ₽`, 'success');
         }
 
-        // --- КОЛЛЕКЦИЯ ---
         function renderCollection() {
             const grid = document.getElementById('collectionGrid');
             grid.innerHTML = '';
@@ -841,19 +1192,21 @@
 
             items.forEach(item => {
                 const isEq = state.equipped && state.equipped.id === item.id;
-                let mPrice = getMarketPrice(item.baseDynamicPrice, item.rarity.id);
-                let profit = makeLivePrice(Math.floor(mPrice * (1 - getCommissionPercent()/100)));
+                let profitObj = getSellProfit(item);
 
                 const div = document.createElement('div');
                 div.className = 'card'; 
                 div.style.borderTopColor = item.rarity.color;
                 if(isEq) div.style.boxShadow = `0 0 10px ${item.rarity.color} inset`;
                 
+                let pText = `+${profitObj.rub.toLocaleString()} ₽`;
+                if(item.rarity.id === 'mythic') pText += `<br><span style="color:#81c784">+${profitObj.eur.toLocaleString()} €</span>`;
+
                 div.innerHTML = `
                     ${item.locked ? '<div class="lock-icon locked">🔒</div>' : ''}
                     <div class="card-num" style="color: ${item.rarity.color};">${item.number}</div>
                     <div style="font-size: 10px; text-transform: uppercase; margin-bottom:5px; color:${item.rarity.color}">${item.rarity.name}</div>
-                    <div class="card-price">+${profit.toLocaleString()} ₽</div>
+                    <div class="card-price" style="line-height: 1.4;">${pText}</div>
                 `;
                 div.onclick = () => openModal(item.id);
                 grid.appendChild(div);
@@ -882,27 +1235,39 @@
         function sellAllUnprotected() { processBulkSell(() => true); }
 
         function processBulkSell(conditionFn) {
-            let totalEarned = 0, count = 0, toKeep = [];
+            let totalEarnedRub = 0, totalEarnedEur = 0, count = 0, toKeep = [];
             state.collection.forEach(item => {
                 let isEq = state.equipped && state.equipped.id === item.id;
                 if (!item.locked && !isEq && conditionFn(item)) {
-                    let mPrice = getMarketPrice(item.baseDynamicPrice, item.rarity.id);
-                    totalEarned += makeLivePrice(Math.floor(mPrice * (1 - getCommissionPercent()/100)));
+                    let profitObj = getSellProfit(item);
+                    totalEarnedRub += profitObj.rub;
+                    totalEarnedEur += profitObj.eur;
                     count++;
                 } else { toKeep.push(item); }
             });
             if (count > 0) {
-                state.balance += totalEarned; state.stats.earned += totalEarned; state.collection = toKeep;
+                state.balance += totalEarnedRub; state.stats.earned += totalEarnedRub;
+                if(totalEarnedEur > 0) { state.euro += totalEarnedEur; state.stats.earnedEuro += totalEarnedEur; }
+                state.collection = toKeep;
                 updateBalanceUI(); renderCollection(); saveGame();
-                showToast(`Продано ${count} шт. на ${totalEarned.toLocaleString()} ₽`, 'success');
+                if(totalEarnedEur > 0) showToast(`Продано ${count} шт.\n+${totalEarnedRub.toLocaleString()} ₽ | +${totalEarnedEur.toLocaleString()} €`, 'success');
+                else showToast(`Продано ${count} шт. на ${totalEarnedRub.toLocaleString()} ₽`, 'success');
             } else { showToast('Нечего продавать (защищено или пусто)', 'error'); }
         }
 
-        // --- АПГРЕЙДЫ ---
         function buyUpgrade(upgKey) {
-            let upg = UPGRADES[upgKey]; let lvl = state.upgrades[upgKey];
+            let upg = UPGRADES[upgKey]; let lvl = state.upgrades[upgKey] || 0;
             let cost = Math.floor(upg.baseCost * Math.pow(upg.mult, lvl));
             
+            if (upg.curr === 'eur') {
+                if (state.euro >= cost && lvl < upg.maxLevel) {
+                    state.euro -= cost; state.upgrades[upgKey]++;
+                    updateBalanceUI(); renderUpgrades(); renderProfile(); saveGame();
+                    showToast('Автоселлер разблокирован!', 'success');
+                } else { showToast('Недостаточно Евро (€)', 'error'); }
+                return;
+            }
+
             if (state.balance >= cost && lvl < upg.maxLevel) {
                 state.balance -= cost; state.upgrades[upgKey]++;
                 updateBalanceUI(); renderUpgrades(); saveGame();
@@ -914,9 +1279,12 @@
             const list = document.getElementById('upgradesList');
             list.innerHTML = '';
             for(let key in UPGRADES) {
+                if (key === 'autoseller' && state.upgrades.autoseller > 0) continue;
+
                 let upg = UPGRADES[key]; let lvl = state.upgrades[key] || 0;
                 let cost = Math.floor(upg.baseCost * Math.pow(upg.mult, lvl));
                 let isMax = lvl >= upg.maxLevel;
+                let currSymbol = upg.curr === 'eur' ? '€' : '₽';
                 
                 let descText = upg.desc;
                 if (key === 'capacity' && !isMax) {
@@ -926,19 +1294,36 @@
                 list.innerHTML += `
                     <div class="upgrade-card">
                         <div>
-                            <div style="font-weight:bold; margin-bottom:5px;">${upg.name}</div>
+                            <div style="font-weight:bold; margin-bottom:5px; color:${upg.curr === 'eur' ? '#81c784' : '#fff'};">${upg.name}</div>
                             <div style="font-size:12px; color:#aaa;">${descText}</div>
                             <div style="font-size:12px; color:var(--accent); margin-top:5px;">Уровень: ${lvl}/${upg.maxLevel}</div>
                         </div>
-                        <button class="btn-upg" onclick="buyUpgrade('${key}')" ${isMax || state.balance < cost ? 'disabled' : ''}>
-                            ${isMax ? 'МАКС' : cost.toLocaleString() + ' ₽'}
+                        <button class="btn-upg" style="${upg.curr === 'eur' ? 'background:#81c784;' : ''}" onclick="buyUpgrade('${key}')" ${isMax || (upg.curr==='rub'?state.balance:state.euro) < cost ? 'disabled' : ''}>
+                            ${isMax ? 'МАКС' : cost.toLocaleString() + ' ' + currSymbol}
                         </button>
                     </div>
                 `;
             }
         }
 
-        // --- ПРОФИЛЬ ---
+        function upgradeAutosellerProfile() {
+            let lvl = state.upgrades.autoseller;
+            if (lvl >= 5) return;
+            let config = AUTOSELLER_CONFIG[lvl+1];
+            let cost = config.cost;
+            let isEur = config.isEur;
+            
+            if (isEur) {
+                if (state.euro >= cost) { state.euro -= cost; } else { showToast('Недостаточно Евро (€)', 'error'); return; }
+            } else {
+                if (state.balance >= cost) { state.balance -= cost; } else { showToast('Недостаточно рублей (₽)', 'error'); return; }
+            }
+            
+            state.upgrades.autoseller++;
+            saveGame(); updateBalanceUI(); renderProfile();
+            showToast(`Автоселлер улучшен до ур. ${lvl+1}!`, 'success');
+        }
+
         function renderProfile() {
             const profEq = document.getElementById('profEquipped');
             if (state.equipped) {
@@ -948,20 +1333,28 @@
             }
             document.getElementById('profTotalGens').innerText = state.stats.generated;
             document.getElementById('profTotalEarned').innerText = state.stats.earned.toLocaleString('ru-RU') + ' ₽';
-            
-            document.getElementById('stat-common').innerText = state.stats.rarities.common || 0;
-            document.getElementById('stat-uncommon').innerText = state.stats.rarities.uncommon || 0;
-            document.getElementById('stat-rare').innerText = state.stats.rarities.rare || 0;
-            document.getElementById('stat-epic').innerText = state.stats.rarities.epic || 0;
-            document.getElementById('stat-legendary').innerText = state.stats.rarities.legendary || 0;
-            document.getElementById('stat-mythic').innerText = state.stats.rarities.mythic || 0;
+            document.getElementById('profTotalEuro').innerText = state.stats.earnedEuro.toLocaleString('ru-RU') + ' €';
 
-            document.getElementById('stat-diamond').innerText = state.stats.patterns.diamond || 0;
-            document.getElementById('stat-platinum').innerText = state.stats.patterns.platinum || 0;
-            document.getElementById('stat-flash').innerText = state.stats.patterns.flash || 0;
-            document.getElementById('stat-kare').innerText = state.stats.patterns.kare || 0;
-            document.getElementById('stat-butterfly').innerText = state.stats.patterns.butterfly || 0;
-            document.getElementById('stat-zeros').innerText = state.stats.patterns.zeros || 0;
+            let asPanel = document.getElementById('autosellerProfilePanel');
+            if (state.upgrades.autoseller > 0) {
+                asPanel.style.display = 'block';
+                let lvl = state.upgrades.autoseller;
+                let config = AUTOSELLER_CONFIG[lvl];
+                document.getElementById('asStatus').innerHTML = `Уровень: <span style="color:#fff; font-weight:bold;">${lvl} / 5</span><br>Продает: <span style="color:#fff;">${config.name}</span><br>Срабатывает автоматически при 100% заполнении сейфа.`;
+                
+                let btn = document.getElementById('asUpgBtn');
+                if (lvl < 5) {
+                    let nextConfig = AUTOSELLER_CONFIG[lvl+1];
+                    let currSymbol = nextConfig.isEur ? '€' : '₽';
+                    btn.innerText = `Улучшить (${nextConfig.cost.toLocaleString()} ${currSymbol})`;
+                    btn.style.display = 'block';
+                    btn.style.opacity = (nextConfig.isEur ? state.euro >= nextConfig.cost : state.balance >= nextConfig.cost) ? '1' : '0.5';
+                } else {
+                    btn.style.display = 'none';
+                }
+            } else {
+                if(asPanel) asPanel.style.display = 'none';
+            }
         }
 
         updateBalanceUI();
