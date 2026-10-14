@@ -37,7 +37,6 @@
             touch-action: manipulation;
         }
 
-        /* --- НОВАЯ ВЕРХНЯЯ ПАНЕЛЬ --- */
         .top-bar {
             position: fixed; top: 0; left: 0; width: 100%;
             background: rgba(11, 12, 16, 0.95);
@@ -52,7 +51,6 @@
         .balance-euro { font-size: 16px; font-weight: bold; color: #81c784; text-shadow: 0 0 10px rgba(129,199,132,0.3); margin-top: 2px; display: none; }
         #genCostHint { font-size: 11px; color: var(--text-muted); margin-top: 4px; }
 
-        /* --- НОВАЯ НИЖНЯЯ НАВИГАЦИЯ --- */
         .bottom-nav {
             position: fixed; bottom: 0; left: 0; width: 100%;
             display: flex; justify-content: space-around;
@@ -74,7 +72,6 @@
         .nav-icon { font-size: 22px; filter: grayscale(100%) opacity(0.6); transition: 0.3s; }
         .nav-item.active .nav-icon { filter: grayscale(0%) opacity(1); transform: translateY(-2px); }
 
-        /* --- КОНТЕНТ --- */
         .content { 
             flex: 1; overflow-y: auto; 
             padding: 110px 20px 90px 20px;
@@ -83,7 +80,6 @@
         .tab-content.active { display: block; animation: fadeIn 0.3s; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* --- ТОСТЫ --- */
         #toast-container {
             position: fixed; top: 120px; left: 50%; transform: translateX(-50%);
             display: flex; flex-direction: column; align-items: center; gap: 10px;
@@ -99,7 +95,6 @@
         .toast.pulse { transform: scale(1.05); transition: 0.1s; }
         @keyframes slideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* --- ГАЧА / СИМ-КАРТА --- */
         .generator-container { display: flex; flex-direction: column; align-items: center; position: relative; margin-top: 10px; }
         
         #history-container {
@@ -200,7 +195,6 @@
         #descLabel { font-size: 13px; color: var(--text-bright); margin-top: 5px; font-weight: 600; min-height: 15px;}
         #operatorLabel { font-size: 11px; color: var(--text-muted); margin-top: 3px; font-weight: normal; letter-spacing: 0.5px; }
 
-        /* --- ЭЛЕМЕНТЫ ИНТЕРФЕЙСА --- */
         .glass-panel {
             background: var(--glass-bg); border: 1px solid var(--glass-border);
             border-radius: 15px; padding: 15px; margin-bottom: 20px; box-shadow: 0 8px 32px rgba(0,0,0,0.2);
@@ -240,7 +234,7 @@
         .lock-icon.locked { opacity: 1; text-shadow: 0 0 10px #fff; }
 
         .upgrade-card {
-            background: rgba(255,255,255,0.03); border: 1px solid var(--glass-border); border-radius: 12px;
+            background: rgba(255,255,255,0.03); border: 1px solid var(--glass-border); border-radius: 14px;
             padding: 15px; margin-bottom: 15px; border-left: 4px solid var(--accent);
             display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 15px rgba(0,0,0,0.2);
         }
@@ -251,7 +245,6 @@
         .stat-item:last-child { border-bottom: none; }
         .stat-header { font-size: 11px; color: var(--accent); text-transform: uppercase; margin-top: 20px; margin-bottom: 5px; font-weight: bold; letter-spacing: 1px;}
 
-        /* --- АНИМАЦИЯ МОДАЛЬНОГО ОКНА --- */
         .modal-overlay {
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0,0,0,0.85); z-index: 200; justify-content: center; align-items: center;
@@ -466,6 +459,17 @@
                 <div class="stat-item"><span>Эпические:</span><strong id="stat-epic">0</strong></div>
                 <div class="stat-item"><span>Легендарные:</span><strong id="stat-legendary">0</strong></div>
                 <div class="stat-item"><span>Мифические:</span><strong id="stat-mythic">0</strong></div>
+
+                <div class="stat-header">Редкие паттерны</div>
+                <div class="stat-item"><span>🌌 Абсолюты (10 од.):</span><strong id="stat-god">0</strong></div>
+                <div class="stat-item"><span>🌟 Легенды (8-9 од.):</span><strong id="stat-legend">0</strong></div>
+                <div class="stat-item"><span>👑 Бриллианты (7 од.):</span><strong id="stat-diamond">0</strong></div>
+                <div class="stat-item"><span>💎 Платиновые (6 од.):</span><strong id="stat-platinum">0</strong></div>
+                <div class="stat-item"><span>🥇 Золотые (5 од.):</span><strong id="stat-gold">0</strong></div>
+                <div class="stat-item"><span>🥈 Серебряные (4 од.):</span><strong id="stat-silver">0</strong></div>
+                <div class="stat-item"><span>🪘 Ритмичные (ABAB):</span><strong id="stat-rhythm">0</strong></div>
+                <div class="stat-item"><span>🦋 Бабочки (AABBCC):</span><strong id="stat-butterfly">0</strong></div>
+                <div class="stat-item"><span>🎯 Тысячники (000):</span><strong id="stat-zeros">0</strong></div>
             </div>
 
             <button class="btn-full danger" style="margin-top: 10px;" onclick="resetProgress()">Сбросить весь прогресс (Удалить сейв)</button>
@@ -516,20 +520,35 @@
             autoseller: { id: 'autoseller', name: 'Автоселлер', desc: 'Продает номера при 100% заполнении.', maxLevel: 1, baseCost: 25000, mult: 1, curr: 'rub' }
         };
 
-        const SAVE_KEY = 'simgacha_save_v24'; 
+        const MAIN_SAVE_KEY = 'premium_sim_gacha_main'; 
         const defaultState = {
-            version: 24, balance: 10000, euro: 0, collection: [], equipped: null,
-            stats: { generated: 0, earned: 0, earnedEuro: 0, rarities: { common: 0, uncommon: 0, rare: 0, epic: 0, legendary: 0, mythic: 0 } },
+            version: 25, balance: 10000, euro: 0, collection: [], equipped: null,
+            stats: { generated: 0, earned: 0, earnedEuro: 0, rarities: { common: 0, uncommon: 0, rare: 0, epic: 0, legendary: 0, mythic: 0 },
+            patterns: { god: 0, legend: 0, diamond: 0, platinum: 0, gold: 0, silver: 0, rhythm: 0, butterfly: 0, twopairs: 0, zeros: 0 } },
             upgrades: { capacity: 0, luck: 0, autoseller: 0 },
             market: { active: false, rarityId: null, mult: 1 },
             settings: { color: '#66fcf1', animEpic: true, animLegendary: true, animMythic: true }
         };
 
         let state;
-        try { state = localStorage.getItem(SAVE_KEY) ? JSON.parse(localStorage.getItem(SAVE_KEY)) : JSON.parse(JSON.stringify(defaultState)); } 
+        let savedData = localStorage.getItem(MAIN_SAVE_KEY);
+
+        // --- АВТОМАТИЧЕСКОЕ СПАСЕНИЕ СТАРЫХ СОХРАНЕНИЙ ---
+        if (!savedData) {
+            for (let i = 24; i >= 9; i--) {
+                let oldSave = localStorage.getItem('simgacha_save_v' + i);
+                if (oldSave) {
+                    savedData = oldSave;
+                    localStorage.setItem(MAIN_SAVE_KEY, oldSave);
+                    console.log("Успешно восстановлено сохранение v" + i);
+                    break;
+                }
+            }
+        }
+
+        try { state = savedData ? JSON.parse(savedData) : JSON.parse(JSON.stringify(defaultState)); } 
         catch (e) { state = JSON.parse(JSON.stringify(defaultState)); }
 
-        // --- ИСТИННЫЙ РАНДОМ ---
         function trueRandomDigit() {
             if (window.crypto && window.crypto.getRandomValues) {
                 let array = new Uint8Array(1);
@@ -547,22 +566,19 @@
             return `+7 (${pref}) ${tail.slice(0,3)}-${tail.slice(3,5)}-${tail.slice(5,7)}`;
         }
 
-        // --- ЕДИНЫЙ ЦЕНТР ОЦЕНКИ И КОМБО (V24) ---
         function evaluatePhoneNumber(numberStr) {
             const digits10 = (numberStr || "").replace(/\D/g, '').slice(-10) || "9990000000";
             const prefix = digits10.slice(0, 3);
             const tail = digits10.slice(3); 
             
             let patternsFound = [];
-
-            // 1. ОЦЕНКА КОДА ОПЕРАТОРА
             let operatorScore = 0;
             let opCombo = null;
+
             if (/(.)\1{2}/.test(prefix)) { operatorScore = 150; opCombo = { name: 'Код: Премиум (XXX)', score: 150, desc: 'Три одинаковые цифры в коде.' }; }
             else if (prefix[0] === prefix[2]) { operatorScore = 40; opCombo = { name: 'Код: Красивый (ABA)', score: 40, desc: 'Симметричный код оператора.' }; }
-            else if (/(.)\1/.test(prefix)) { operatorScore = 5; opCombo = { name: 'Код: Парный', score: 5, desc: 'Пара одинаковых цифр в коде (На цену влияет мало).' }; }
+            else if (/(.)\1/.test(prefix)) { operatorScore = 5; opCombo = { name: 'Код: Парный', score: 5, desc: 'Пара одинаковых цифр в коде.' }; }
 
-            // 2. ОЦЕНКА АБОНЕНТСКОЙ ЧАСТИ
             if (/(.)\1{6}/.test(tail)) patternsFound.push({ name: '👑 Бриллиант (7 од.)', score: 5000, desc: 'Все 7 цифр абонента совпадают.' });
             else if (/(.)\1{5}/.test(tail)) patternsFound.push({ name: '💎 Платина (6 од.)', score: 1500, desc: '6 одинаковых цифр подряд.' });
             else if (/(.)\1{4}/.test(tail)) patternsFound.push({ name: '🥇 Золотой (5 од.)', score: 400, desc: '5 одинаковых цифр подряд.' });
@@ -595,7 +611,6 @@
             let yyCount = (tail.match(/69/g) || []).length;
             if (yyCount > 0) patternsFound.push({ name: `☯ Инь и Ян (x${yyCount})`, score: 0, desc: 'Содержит популярную комбинацию 69. Даёт +15% к финальной цене.' });
 
-            // 3. РАСЧЕТ ИНДЕКСА КРАСОТЫ (Убывающая отдача только для абонентской части)
             patternsFound.sort((a, b) => b.score - a.score); 
             let tailScore = 0;
             let comboLines = [];
@@ -618,7 +633,6 @@
 
             let totalScore = operatorScore + tailScore;
 
-            // 4. ОПРЕДЕЛЕНИЕ РЕДКОСТИ
             let rarityId = 'common';
             if (totalScore >= 4000) rarityId = 'mythic';
             else if (totalScore >= 1000) rarityId = 'legendary';
@@ -628,7 +642,6 @@
             
             let rarityData = RARITIES[rarityId];
 
-            // 5. РАСЧЕТ РЫНОЧНОЙ ЦЕНЫ
             let hash = numberStr.split('').reduce((acc, char, i) => acc + char.charCodeAt(0) * (i + 1), 0);
             let pseudoRandom = Math.abs(Math.sin(hash)); 
             
@@ -652,21 +665,21 @@
                 rarityId: rarityId,
                 basePrice: finalPrice,
                 score: totalScore,
-                source: 'Локальная алгоритмическая модель (v24)'
+                source: 'Локальная алгоритмическая модель (v25)'
             };
         }
 
-        // --- МИГРАЦИЯ НА V24 (ИСПРАВЛЕНИЕ NaN БАГА И ЭКОНОМИКИ) ---
-        if(state.version !== 24) {
-            console.log("Migration to v24: Dynamic Economy & Fix NaN falls...");
+        if(state.version !== 25) {
+            console.log("Migration to v25: Static Main Key + Stats Fix...");
             if(typeof state.balance !== 'number' || isNaN(state.balance)) state.balance = defaultState.balance;
             if(typeof state.euro !== 'number' || isNaN(state.euro)) state.euro = 0;
+            if(!state.stats.patterns) state.stats.patterns = defaultState.stats.patterns;
             
             state.collection.forEach(item => {
                 if (!item.number) item.number = "+7 (999) 000-00-00"; 
                 let evalData = evaluatePhoneNumber(item.number);
                 item.rarity = RARITIES[evalData.rarityId] || RARITIES['common'];
-                item.baseDynamicPrice = evalData.basePrice; // No fallback needed
+                item.baseDynamicPrice = evalData.basePrice || 100;
                 item.desc = evalData.primaryPatternName;
                 item.comboLines = evalData.comboLines;
                 item.score = evalData.score;
@@ -677,20 +690,19 @@
                 if (!state.equipped.number) state.equipped.number = "+7 (999) 000-00-00";
                 let eqEval = evaluatePhoneNumber(state.equipped.number);
                 state.equipped.rarity = RARITIES[eqEval.rarityId] || RARITIES['common'];
-                state.equipped.baseDynamicPrice = eqEval.basePrice;
+                state.equipped.baseDynamicPrice = eqEval.basePrice || 100;
                 state.equipped.desc = eqEval.primaryPatternName;
                 state.equipped.comboLines = eqEval.comboLines;
                 state.equipped.score = eqEval.score;
                 state.equipped.operator = eqEval.operatorName;
             }
 
-            state.version = 24;
-            localStorage.setItem(SAVE_KEY, JSON.stringify(state));
+            state.version = 25;
+            localStorage.setItem(MAIN_SAVE_KEY, JSON.stringify(state));
         }
 
-        function saveGame() { localStorage.setItem(SAVE_KEY, JSON.stringify(state)); }
+        function saveGame() { localStorage.setItem(MAIN_SAVE_KEY, JSON.stringify(state)); }
 
-        // --- ИНТЕРФЕЙС И ВЗАИМОДЕЙСТВИЕ ---
         let isAnimating = false;
         let currentGenId = 0; 
         let selectedTags = new Set();
@@ -876,9 +888,8 @@
             setTimeout(() => { if(el.parentNode) el.remove(); }, 600);
         }
 
-        // --- ОБРАБОТЧИК КЛИКОВ (БЕЗ GHOST CLICKS) ---
         function handleWrapperClick(e) {
-            if (e.target.id === 'simNumber') { return; } // Клик по номеру обрабатывается отдельно
+            if (e.target.id === 'simNumber') { return; } 
             generateSim();
         }
 
@@ -985,6 +996,18 @@
 
                 state.collection.unshift(newSim); 
                 lastGeneratedSim = newSim; 
+                
+                // --- Статистика ---
+                if (bestEval.comboLines.find(c => c.name.includes('Абсолют'))) state.stats.patterns.god = (state.stats.patterns.god || 0) + 1;
+                else if (bestEval.comboLines.find(c => c.name.includes('Легенда'))) state.stats.patterns.legend = (state.stats.patterns.legend || 0) + 1;
+                else if (bestEval.comboLines.find(c => c.name.includes('Бриллиант'))) state.stats.patterns.diamond = (state.stats.patterns.diamond || 0) + 1;
+                else if (bestEval.comboLines.find(c => c.name.includes('Платина'))) state.stats.patterns.platinum = (state.stats.patterns.platinum || 0) + 1;
+                else if (bestEval.comboLines.find(c => c.name.includes('Золотой'))) state.stats.patterns.gold = (state.stats.patterns.gold || 0) + 1;
+                else if (bestEval.comboLines.find(c => c.name.includes('Серебряный'))) state.stats.patterns.silver = (state.stats.patterns.silver || 0) + 1;
+                
+                if (bestEval.comboLines.find(c => c.name.includes('Ритм (ABAB)'))) state.stats.patterns.rhythm = (state.stats.patterns.rhythm || 0) + 1;
+                if (bestEval.comboLines.find(c => c.name.includes('Бабочка'))) state.stats.patterns.butterfly = (state.stats.patterns.butterfly || 0) + 1;
+                if (bestEval.comboLines.find(c => c.name.includes('Тысячник (000)'))) state.stats.patterns.zeros = (state.stats.patterns.zeros || 0) + 1;
 
                 card.style.background = rarity.bg;
                 let rLabel = document.getElementById('rarityLabel');
@@ -1114,7 +1137,7 @@
                 document.getElementById('modalFinalPrice').innerText = `+${profitObj.rub.toLocaleString()} ₽`;
             }
 
-            document.getElementById('modalSource').innerText = `Источник оценки: Локальная алгоритмическая модель (v24)`;
+            document.getElementById('modalSource').innerText = `Источник оценки: Локальная алгоритмическая модель (v25)`;
 
             const btnEq = document.getElementById('modalEquipBtn');
             btnEq.innerText = isEq ? 'СНЯТЬ НОМЕР' : 'НАДЕТЬ НОМЕР';
@@ -1325,6 +1348,23 @@
             document.getElementById('profTotalGens').innerText = state.stats.generated;
             document.getElementById('profTotalEarned').innerText = state.stats.earned.toLocaleString('ru-RU') + ' ₽';
             document.getElementById('profTotalEuro').innerText = state.stats.earnedEuro.toLocaleString('ru-RU') + ' €';
+            
+            document.getElementById('stat-common').innerText = state.stats.rarities.common || 0;
+            document.getElementById('stat-uncommon').innerText = state.stats.rarities.uncommon || 0;
+            document.getElementById('stat-rare').innerText = state.stats.rarities.rare || 0;
+            document.getElementById('stat-epic').innerText = state.stats.rarities.epic || 0;
+            document.getElementById('stat-legendary').innerText = state.stats.rarities.legendary || 0;
+            document.getElementById('stat-mythic').innerText = state.stats.rarities.mythic || 0;
+
+            document.getElementById('stat-god').innerText = state.stats.patterns.god || 0;
+            document.getElementById('stat-legend').innerText = state.stats.patterns.legend || 0;
+            document.getElementById('stat-diamond').innerText = state.stats.patterns.diamond || 0;
+            document.getElementById('stat-platinum').innerText = state.stats.patterns.platinum || 0;
+            document.getElementById('stat-gold').innerText = state.stats.patterns.gold || 0;
+            document.getElementById('stat-silver').innerText = state.stats.patterns.silver || 0;
+            document.getElementById('stat-rhythm').innerText = state.stats.patterns.rhythm || 0;
+            document.getElementById('stat-butterfly').innerText = state.stats.patterns.butterfly || 0;
+            document.getElementById('stat-zeros').innerText = state.stats.patterns.zeros || 0;
 
             let asPanel = document.getElementById('autosellerProfilePanel');
             if (state.upgrades.autoseller > 0) {
