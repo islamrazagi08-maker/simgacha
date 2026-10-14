@@ -7,298 +7,269 @@
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         :root {
-            --bg-color: #0b0c10;
-            --glass-bg: rgba(22, 27, 34, 0.85);
-            --glass-border: rgba(255, 255, 255, 0.08);
-            --text-main: #c9d1d9;
+            /* Премиальная темная тема */
+            --bg-dark: #050507;
+            --bg-light: #12141d;
+            --glass-bg: rgba(20, 22, 30, 0.6);
+            --glass-border: rgba(255, 255, 255, 0.06);
+            --text-main: #e2e8f0;
             --text-bright: #ffffff;
-            --text-muted: #8b949e;
-            --accent: #66fcf1;
-            --danger: #ff4c4c;
+            --text-muted: #64748b;
+            --accent: #00f0ff;
+            --danger: #ff3366;
+            --success: #10b981;
+            --warning: #f59e0b;
         }
 
-        * { box-sizing: border-box; }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; }
 
         body {
-            margin: 0; padding: 0;
-            background: radial-gradient(circle at 50% 0%, #1f2833 0%, #0b0c10 80%);
+            background: radial-gradient(circle at 50% -20%, var(--bg-light) 0%, var(--bg-dark) 80%);
             color: var(--text-main);
-            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
             overflow-x: hidden;
             display: flex; flex-direction: column;
             height: 100vh;
-            
-            -webkit-user-select: none;
-            -khtml-user-select: none;
-            -moz-user-select: none;
-            -ms-user-select: none;
-            user-select: none;
-            -webkit-touch-callout: none;
-            touch-action: manipulation;
+            -webkit-user-select: none; user-select: none;
+            -webkit-touch-callout: none; touch-action: manipulation;
         }
 
+        /* --- ПАРЯЩАЯ ВЕРХНЯЯ ШАПКА --- */
         .top-bar {
             position: fixed; top: 0; left: 0; width: 100%;
-            background: rgba(11, 12, 16, 0.95);
-            backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
-            padding: 12px 0 10px 0; text-align: center;
-            border-bottom: 1px solid var(--glass-border);
-            z-index: 90; box-shadow: 0 4px 20px rgba(0,0,0,0.4);
-            padding-top: env(safe-area-inset-top, 12px);
+            background: linear-gradient(to bottom, rgba(5,5,7,0.9) 0%, rgba(5,5,7,0) 100%);
+            padding: 15px 0 25px 0; text-align: center;
+            z-index: 90; pointer-events: none;
+            padding-top: env(safe-area-inset-top, 15px);
         }
-        #marketTicker { font-size: 10px; color: var(--accent); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; font-weight: bold;}
-        .balance-val { font-size: 26px; font-weight: bold; color: #ffd700; text-shadow: 0 0 10px rgba(255,215,0,0.3); }
-        .balance-euro { font-size: 16px; font-weight: bold; color: #81c784; text-shadow: 0 0 10px rgba(129,199,132,0.3); margin-top: 2px; display: none; }
-        #genCostHint { font-size: 11px; color: var(--text-muted); margin-top: 4px; }
+        #marketTicker { font-size: 10px; color: var(--accent); text-transform: uppercase; letter-spacing: 1.5px; font-weight: 700; margin-bottom: 5px; opacity: 0.8;}
+        .balance-val { font-size: 28px; font-weight: 800; color: #fff; letter-spacing: -0.5px; text-shadow: 0 4px 20px rgba(255,255,255,0.2); pointer-events: auto;}
+        .balance-euro { font-size: 14px; font-weight: 700; color: var(--success); margin-top: 2px; display: none; pointer-events: auto;}
+        #genCostHint { font-size: 11px; color: var(--text-muted); margin-top: 4px; font-weight: 500; }
 
+        /* --- ПАРЯЩАЯ НИЖНЯЯ НАВИГАЦИЯ --- */
         .bottom-nav {
-            position: fixed; bottom: 0; left: 0; width: 100%;
-            display: flex; justify-content: space-around;
-            background: rgba(11, 12, 16, 0.98);
-            backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
-            padding: 10px 0; border-top: 1px solid var(--glass-border);
-            z-index: 100; box-shadow: 0 -4px 20px rgba(0,0,0,0.5);
-            padding-bottom: calc(10px + env(safe-area-inset-bottom, 0px));
+            position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+            width: 90%; max-width: 400px;
+            display: flex; justify-content: space-between;
+            background: rgba(20, 22, 30, 0.7);
+            backdrop-filter: blur(20px) saturate(180%); -webkit-backdrop-filter: blur(20px) saturate(180%);
+            padding: 12px 20px; border-radius: 25px;
+            border: 1px solid var(--glass-border);
+            z-index: 100; box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px));
         }
         .nav-item {
-            flex: 1; text-align: center;
-            background: transparent; border: none;
-            color: var(--text-muted);
-            font-size: 10px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px;
-            cursor: pointer; transition: 0.3s;
-            display: flex; flex-direction: column; align-items: center; gap: 4px;
+            flex: 1; text-align: center; background: transparent; border: none;
+            color: var(--text-muted); font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;
+            cursor: pointer; transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex; flex-direction: column; align-items: center; gap: 6px;
         }
-        .nav-item.active { color: var(--accent); }
-        .nav-icon { font-size: 22px; filter: grayscale(100%) opacity(0.6); transition: 0.3s; }
-        .nav-item.active .nav-icon { filter: grayscale(0%) opacity(1); transform: translateY(-2px); }
+        .nav-item.active { color: #fff; }
+        .nav-icon { font-size: 20px; filter: grayscale(100%) opacity(0.5); transition: 0.3s; }
+        .nav-item.active .nav-icon { filter: grayscale(0%) opacity(1); transform: translateY(-3px); text-shadow: 0 0 15px rgba(255,255,255,0.3);}
 
-        .content { 
-            flex: 1; overflow-y: auto; 
-            padding: 110px 20px 90px 20px;
-        }
+        /* --- КОНТЕНТ --- */
+        .content { flex: 1; overflow-y: auto; padding: 110px 20px 110px 20px; }
         .tab-content { display: none; }
-        .tab-content.active { display: block; animation: fadeIn 0.3s; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        .tab-content.active { display: block; animation: fadeUp 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
+        @keyframes fadeUp { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
 
-        #toast-container {
-            position: fixed; top: 120px; left: 50%; transform: translateX(-50%);
-            display: flex; flex-direction: column; align-items: center; gap: 10px;
-            z-index: 1000; pointer-events: none; width: 90%;
-        }
-        .toast {
-            background: rgba(22, 27, 34, 0.95); border-left: 4px solid var(--danger);
-            color: white; padding: 12px 20px; border-radius: 8px; font-size: 14px;
-            animation: slideDown 0.3s ease-out; backdrop-filter: blur(5px);
-            box-shadow: 0 4px 15px rgba(0,0,0,0.5); border: 1px solid var(--glass-border);
-        }
-        .toast.success { border-left-color: var(--accent); }
-        .toast.pulse { transform: scale(1.05); transition: 0.1s; }
+        /* --- ТОСТЫ --- */
+        #toast-container { position: fixed; top: 110px; left: 50%; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; gap: 10px; z-index: 1000; pointer-events: none; width: 90%; }
+        .toast { background: rgba(20, 22, 30, 0.9); border-left: 3px solid var(--accent); color: white; padding: 14px 20px; border-radius: 12px; font-size: 13px; font-weight: 500; animation: slideDown 0.3s ease-out; backdrop-filter: blur(10px); box-shadow: 0 10px 25px rgba(0,0,0,0.5); border: 1px solid var(--glass-border); }
         @keyframes slideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
 
-        .generator-container { display: flex; flex-direction: column; align-items: center; position: relative; margin-top: 10px; }
+        /* --- МИНИМАЛИСТИЧНАЯ ЦИФРОВАЯ SIM-КАРТА --- */
+        .generator-container { display: flex; flex-direction: column; align-items: center; position: relative; margin-top: 5px; }
         
-        #history-container {
-            position: absolute; top: -60px; width: 100%; height: 150px;
-            pointer-events: none; display: flex; flex-direction: column; align-items: center; z-index: 10;
-        }
-        .skipped-item {
-            position: absolute; display: flex; flex-direction: column; align-items: center;
-            animation: flyUp 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
-            opacity: 0.5; transform: scale(0.7);
-        }
-        .skipped-label { font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 5px; }
-        @keyframes flyUp {
-            0% { transform: translateY(50px) scale(0.85); opacity: 1; }
-            100% { transform: translateY(-100px) scale(0.6); opacity: 0; }
-        }
+        #history-container { position: absolute; top: -50px; width: 100%; height: 150px; pointer-events: none; display: flex; flex-direction: column; align-items: center; z-index: 10; }
+        .skipped-item { position: absolute; display: flex; flex-direction: column; align-items: center; animation: flyUp 0.7s cubic-bezier(0.4, 0, 0.2, 1) forwards; opacity: 0.5; transform: scale(0.7); }
+        .skipped-label { font-size: 9px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 5px; font-weight: bold;}
+        @keyframes flyUp { 0% { transform: translateY(50px) scale(0.9); opacity: 1; filter: blur(0px); } 100% { transform: translateY(-120px) scale(0.5); opacity: 0; filter: blur(4px); } }
 
         .sim-wrapper {
-            margin-bottom: 15px; cursor: pointer;
-            filter: drop-shadow(0 15px 25px rgba(0,0,0,0.6));
-            -webkit-tap-highlight-color: transparent;
-            z-index: 20;
+            margin-bottom: 25px; cursor: pointer;
+            -webkit-tap-highlight-color: transparent; z-index: 20;
+            perspective: 1000px;
         }
+        
         .sim-card {
-            width: 210px; height: 330px;
-            background: linear-gradient(135deg, #2a2a35, #1a1a25);
-            border-radius: 20px; border: 2px solid rgba(255,255,255,0.08);
-            display: flex; flex-direction: column; align-items: center;
+            width: 240px; height: 360px;
+            background: linear-gradient(145deg, rgba(30, 34, 45, 0.8), rgba(15, 17, 25, 0.9));
+            border-radius: 28px; border: 1px solid rgba(255,255,255,0.1);
+            display: flex; flex-direction: column; justify-content: space-between;
             position: relative; overflow: hidden;
-            transition: transform 0.1s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            transition: transform 0.15s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5), inset 0 1px 1px rgba(255,255,255,0.2);
+            padding: 25px 20px;
         }
+        
+        /* Блик стекла */
         .sim-card::before {
-            content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%;
-            background: linear-gradient(to bottom right, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0) 40%, rgba(255,255,255,0) 100%);
-            pointer-events: none;
+            content: ''; position: absolute; top: 0; left: -100%; width: 50%; height: 100%;
+            background: linear-gradient(to right, rgba(255,255,255,0) 0%, rgba(255,255,255,0.05) 50%, rgba(255,255,255,0) 100%);
+            transform: skewX(-20deg); transition: 0.5s; pointer-events: none;
+        }
+        .sim-card.pressed { transform: scale(0.96) translateY(5px); box-shadow: 0 10px 20px rgba(0,0,0,0.4); }
+        .sim-card.pressed::before { left: 200%; transition: 0.4s; }
+
+        .sim-card.dramatic-glow { box-shadow: 0 0 50px var(--accent); animation: pulseCard 1s infinite alternate; }
+        @keyframes pulseCard { 0% { transform: scale(1); } 100% { transform: scale(1.02); } }
+
+        .sim-card.mythic-glow { border: 1px solid #ff3366; box-shadow: 0 0 80px rgba(255, 51, 102, 0.5), inset 0 0 30px rgba(255, 51, 102, 0.2); animation: pulseMythic 1s infinite alternate; }
+        @keyframes pulseMythic { 0% { filter: hue-rotate(0deg) brightness(1); transform: scale(1); } 100% { filter: hue-rotate(20deg) brightness(1.2); transform: scale(1.03); } }
+
+        /* Внутренности новой карты */
+        .card-header { display: flex; justify-content: space-between; align-items: flex-start; pointer-events: none; }
+        
+        /* Минималистичный чип (Контактная площадка) */
+        .digital-chip {
+            width: 28px; height: 34px; border-radius: 6px;
+            border: 1px solid rgba(255,255,255,0.2);
+            background: linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0.02));
+            position: relative; overflow: hidden;
+        }
+        .digital-chip::after {
+            content: ''; position: absolute; top: 40%; left: 0; width: 100%; height: 1px;
+            background: rgba(255,255,255,0.2); box-shadow: 0 8px 0 rgba(255,255,255,0.2);
         }
         
-        .sim-card.pressed { transform: scale(0.94) !important; box-shadow: inset 0 0 20px rgba(0,0,0,0.8) !important; }
-        .sim-card.dramatic-glow { box-shadow: 0 0 40px var(--accent); animation: shake 0.5s; }
-        @keyframes shake {
-            0%, 100% { transform: translateX(0); }
-            25%, 75% { transform: translateX(-5px); }
-            50% { transform: translateX(5px); }
-        }
-
-        .mythic-flash {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: radial-gradient(circle, rgba(255,82,82,0.4) 0%, transparent 80%);
-            pointer-events: none; z-index: 15; animation: flashFade 2.5s ease-out forwards;
-        }
-        @keyframes flashFade { 0% { opacity: 1; } 100% { opacity: 0; } }
-
-        .sim-card.mythic-glow {
-            animation: mythicVibrate 0.1s infinite, mythicPulse 1.5s infinite;
-            border: 2px solid #ff5252; box-shadow: 0 0 80px #ff5252, inset 0 0 40px #ff0000;
-        }
-        @keyframes mythicVibrate {
-            0%, 100% { transform: translate(0, 0); }
-            50% { transform: translate(-2px, 2px); }
-        }
-        @keyframes mythicPulse {
-            0%, 100% { filter: hue-rotate(0deg) brightness(1); }
-            50% { filter: hue-rotate(20deg) brightness(1.3); }
-        }
+        .card-operator { font-size: 12px; font-weight: 800; letter-spacing: 1.5px; color: rgba(255,255,255,0.3); text-transform: uppercase; text-align: right; }
         
-        .sim-chip {
-            width: 50px; height: 70px; background: linear-gradient(135deg, #ffd700, #daa520);
-            border-radius: 8px; margin-top: 55px; border: 1px solid #b8860b; pointer-events: none;
-        }
-        .sim-logo { position: absolute; bottom: 85px; font-weight: 900; letter-spacing: 4px; color: rgba(255,255,255,0.08); font-size: 26px; pointer-events: none;}
+        .card-center { flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; position: relative; z-index: 10; }
         
         .sim-number {
-            position: absolute; bottom: 25px; width: 85%;
-            font-size: 15px; font-family: 'Courier New', monospace;
-            background: rgba(0,0,0,0.6); color: #fff; text-shadow: 0 0 5px rgba(255,255,255,0.5);
-            padding: 12px 0; border-radius: 8px; font-weight: bold; 
-            cursor: pointer; pointer-events: auto; z-index: 25; 
-            border: 1px solid rgba(255,255,255,0.1); transition: 0.2s;
-            text-align: center; box-shadow: inset 0 2px 10px rgba(0,0,0,0.5);
-            backdrop-filter: blur(5px);
+            font-size: 21px; font-family: 'Courier New', monospace; font-weight: bold;
+            color: #fff; letter-spacing: 0.5px;
+            padding: 15px 10px; border-radius: 12px;
+            background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.05);
+            width: 110%; text-align: center; cursor: pointer; transition: 0.2s;
+            box-shadow: inset 0 2px 10px rgba(0,0,0,0.5); backdrop-filter: blur(5px);
+            pointer-events: auto; /* ВАЖНО: Разрешаем клик по цифрам */
         }
-        .sim-number:hover, .sim-number:active { border-color: var(--accent); box-shadow: 0 0 15px var(--accent) inset; }
+        .sim-number:hover, .sim-number:active { border-color: var(--accent); box-shadow: 0 0 20px rgba(0, 240, 255, 0.2) inset; transform: scale(1.02); }
         .sim-number::after {
-            content: "🔍 Детали"; position: absolute; top: -22px; left: 50%; transform: translateX(-50%);
-            font-size: 10px; color: var(--accent); opacity: 0; transition: 0.2s; white-space: nowrap; font-family: sans-serif;
-            text-shadow: none; font-weight: normal; letter-spacing: 1px;
+            content: "ПОДРОБНЕЕ"; position: absolute; bottom: -20px; left: 50%; transform: translateX(-50%);
+            font-size: 9px; color: var(--accent); opacity: 0; transition: 0.2s; font-family: sans-serif; letter-spacing: 1px; font-weight: bold;
         }
-        .sim-number:hover::after, .sim-number:active::after { opacity: 1; }
-        
-        .click-hint { color: var(--text-muted); font-size: 11px; text-transform: uppercase; letter-spacing: 2px; margin-top: 5px; animation: blink 2s infinite; pointer-events: none;}
-        @keyframes blink { 0%, 100% { opacity: 0.3; } 50% { opacity: 1; } }
+        .sim-number:hover::after { opacity: 1; bottom: -25px; }
 
-        .result-panel { text-align: center; min-height: 90px; margin-top: 15px; pointer-events: none;}
-        #rarityLabel { font-size: 20px; font-weight: bold; margin-bottom: 5px; text-transform: uppercase; letter-spacing: 2px; }
-        #priceLabel { font-size: 20px; color: #ffd700; font-weight: bold; font-family: monospace; }
-        #euroLabel { font-size: 16px; color: #81c784; font-weight: bold; font-family: monospace; margin-top: 2px; display: none;}
-        #descLabel { font-size: 13px; color: var(--text-bright); margin-top: 5px; font-weight: 600; min-height: 15px;}
-        #operatorLabel { font-size: 11px; color: var(--text-muted); margin-top: 3px; font-weight: normal; letter-spacing: 0.5px; }
+        .card-footer { text-align: center; pointer-events: none; }
+        #cardRarity { font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 3px; color: var(--text-muted); margin-bottom: 5px; }
+        #cardPrice { font-size: 16px; font-family: monospace; color: #fff; font-weight: bold; opacity: 0.8;}
 
-        .glass-panel {
-            background: var(--glass-bg); border: 1px solid var(--glass-border);
-            border-radius: 15px; padding: 15px; margin-bottom: 20px; box-shadow: 0 8px 32px rgba(0,0,0,0.2);
-        }
+        .click-hint { color: var(--text-muted); font-size: 10px; text-transform: uppercase; letter-spacing: 2px; text-align: center; animation: pulseText 2s infinite; pointer-events: none; margin-top: -10px; }
+        @keyframes pulseText { 0%, 100% { opacity: 0.3; } 50% { opacity: 0.8; } }
+
+        /* --- ПАНЕЛЬ ПОД КАРТОЙ (Только прибыль) --- */
+        .result-panel { text-align: center; margin-top: 15px; pointer-events: none; min-height: 40px;}
+        #profitLabel { font-size: 16px; color: var(--success); font-weight: bold; font-family: monospace; display: none; }
+        #profitLabel.show { display: block; animation: fadeUp 0.3s ease-out; }
+
+        /* --- ОБЩИЕ ЭЛЕМЕНТЫ (КОЛЛЕКЦИЯ, ПРОФИЛЬ) --- */
+        .glass-panel { background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: 20px; padding: 20px; margin-bottom: 20px; box-shadow: 0 8px 32px rgba(0,0,0,0.2); }
         .mass-sell-tags { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 15px; }
-        .sell-tag {
-            background: rgba(0,0,0,0.3); color: var(--text-main); padding: 8px 15px;
-            border-radius: 20px; font-size: 12px; cursor: pointer; border: 1px solid transparent; transition: 0.2s;
-        }
-        .sell-tag.active { border-color: currentColor; box-shadow: 0 0 10px currentColor inset; color: #fff; }
+        .sell-tag { background: rgba(0,0,0,0.4); color: var(--text-muted); padding: 8px 16px; border-radius: 20px; font-size: 11px; font-weight: bold; text-transform: uppercase; cursor: pointer; border: 1px solid transparent; transition: 0.2s; }
+        .sell-tag.active { background: var(--accent); color: #000; box-shadow: 0 0 15px rgba(0, 240, 255, 0.4); }
         
         .btn-full {
-            width: 100%; padding: 14px; background: rgba(255,255,255,0.05); color: var(--text-bright);
-            border: 1px solid var(--glass-border); border-radius: 12px; font-weight: bold; cursor: pointer; margin-bottom: 10px; transition: 0.2s;
-            font-size: 14px; text-transform: uppercase; letter-spacing: 1px;
+            width: 100%; padding: 15px; background: rgba(255,255,255,0.05); color: var(--text-bright);
+            border: 1px solid var(--glass-border); border-radius: 14px; font-weight: 800; cursor: pointer; margin-bottom: 10px; transition: 0.2s;
+            font-size: 13px; text-transform: uppercase; letter-spacing: 1.5px;
         }
-        .btn-full:active { transform: scale(0.98); }
-        .btn-full.primary { background: var(--accent); color: #000; border: none; box-shadow: 0 4px 15px rgba(102, 252, 241, 0.3);}
-        .btn-full.danger { background: rgba(248, 81, 73, 0.9); color: white; border: none; box-shadow: 0 4px 15px rgba(248, 81, 73, 0.3);}
+        .btn-full:active { transform: scale(0.97); }
+        .btn-full.primary { background: var(--accent); color: #000; border: none; box-shadow: 0 4px 20px rgba(102, 252, 241, 0.2);}
+        .btn-full.danger { background: var(--danger); color: white; border: none; box-shadow: 0 4px 20px rgba(255, 51, 102, 0.2);}
 
         .filters { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
-        select {
-            padding: 10px; border-radius: 10px; background: rgba(0,0,0,0.5);
-            color: white; border: 1px solid var(--glass-border); font-size: 12px; outline: none;
-        }
+        select { padding: 10px 15px; border-radius: 12px; background: rgba(0,0,0,0.6); color: white; border: 1px solid var(--glass-border); font-size: 12px; outline: none; font-weight: bold;}
         
-        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 12px; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 15px; }
         .card {
-            background: rgba(255,255,255,0.03); border: 1px solid var(--glass-border); border-radius: 14px;
-            padding: 15px 10px; display: flex; flex-direction: column; align-items: center; text-align: center; position: relative;
+            background: linear-gradient(145deg, rgba(30, 34, 45, 0.4), rgba(15, 17, 25, 0.6));
+            border: 1px solid var(--glass-border); border-radius: 16px;
+            padding: 15px; display: flex; flex-direction: column; align-items: center; text-align: center; position: relative;
             cursor: pointer; transition: 0.2s; box-shadow: 0 4px 15px rgba(0,0,0,0.2);
         }
-        .card:hover { background: rgba(255,255,255,0.06); transform: translateY(-2px); }
-        .card-num { font-family: 'Courier New', monospace; font-size: 14px; margin: 15px 0 5px 0; font-weight: bold;}
-        .card-price { color: #ffd700; font-size: 14px; margin-bottom: 5px; font-weight: bold;}
-        .lock-icon { position: absolute; top: 10px; right: 10px; font-size: 16px; opacity: 0.5; }
-        .lock-icon.locked { opacity: 1; text-shadow: 0 0 10px #fff; }
+        .card:hover { transform: translateY(-4px); box-shadow: 0 8px 25px rgba(0,0,0,0.4); border-color: rgba(255,255,255,0.15);}
+        .card-num { font-family: 'Courier New', monospace; font-size: 14px; margin: 12px 0 8px 0; font-weight: bold; color: #fff;}
+        .card-price { color: var(--text-muted); font-size: 12px; font-weight: bold;}
+        .lock-icon { position: absolute; top: 12px; right: 12px; font-size: 14px; opacity: 0.5; }
+        .lock-icon.locked { opacity: 1; color: var(--warning); text-shadow: 0 0 10px var(--warning); }
 
         .upgrade-card {
-            background: rgba(255,255,255,0.03); border: 1px solid var(--glass-border); border-radius: 14px;
-            padding: 15px; margin-bottom: 15px; border-left: 4px solid var(--accent);
+            background: linear-gradient(145deg, rgba(30, 34, 45, 0.4), rgba(15, 17, 25, 0.6));
+            border: 1px solid var(--glass-border); border-radius: 16px;
+            padding: 18px; margin-bottom: 15px; border-left: 4px solid var(--accent);
             display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 15px rgba(0,0,0,0.2);
         }
-        .btn-upg { background: var(--accent); border: none; border-radius: 8px; color: #000; padding: 10px 15px; font-weight: bold; cursor: pointer; }
-        .btn-upg:disabled { background: rgba(255,255,255,0.1); color: var(--text-muted); box-shadow: none; }
+        .btn-upg { background: var(--accent); border: none; border-radius: 10px; color: #000; padding: 12px 18px; font-weight: 800; cursor: pointer; transition: 0.2s;}
+        .btn-upg:active { transform: scale(0.95); }
+        .btn-upg:disabled { background: rgba(255,255,255,0.05); color: var(--text-muted); box-shadow: none; pointer-events: none;}
         
-        .stat-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 13px; }
+        .stat-item { display: flex; justify-content: space-between; align-items: center; padding: 14px 0; border-bottom: 1px solid rgba(255,255,255,0.03); font-size: 13px; font-weight: 500;}
         .stat-item:last-child { border-bottom: none; }
-        .stat-header { font-size: 11px; color: var(--accent); text-transform: uppercase; margin-top: 20px; margin-bottom: 5px; font-weight: bold; letter-spacing: 1px;}
+        .stat-header { font-size: 10px; color: var(--text-muted); text-transform: uppercase; margin-top: 25px; margin-bottom: 5px; font-weight: 800; letter-spacing: 1.5px;}
 
+        /* --- ИСПРАВЛЕННАЯ АНИМАЦИЯ МОДАЛЬНОГО ОКНА (Защита от кликов) --- */
         .modal-overlay {
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0,0,0,0.85); z-index: 200; justify-content: center; align-items: center;
-            backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+            backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
         }
         .modal-overlay.active { display: flex; animation: fadeIn 0.2s forwards; }
         
         .modal-content {
-            background: linear-gradient(135deg, #161b22, #0d1117); border: 1px solid rgba(255,255,255,0.15);
-            padding: 25px 20px; border-radius: 24px; width: 90%; max-width: 380px; max-height: 85vh; overflow-y: auto;
-            text-align: center; box-shadow: 0 25px 50px rgba(0,0,0,0.8); position: relative;
-            animation: modalPop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+            background: linear-gradient(135deg, #1a1c23, #0d0f14); border: 1px solid rgba(255,255,255,0.1);
+            padding: 30px 25px; border-radius: 30px; width: 92%; max-width: 400px; max-height: 85vh; overflow-y: auto;
+            text-align: center; box-shadow: 0 30px 60px rgba(0,0,0,0.9); position: relative;
+            animation: modalPop 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
         }
         @keyframes modalPop {
-            0% { opacity: 0; transform: scale(0.8) translateY(20px); pointer-events: none; }
-            99% { pointer-events: none; }
+            0% { opacity: 0; transform: scale(0.8) translateY(30px); pointer-events: none; }
+            80% { pointer-events: none; } /* Строгая блокировка клика во время анимации */
             100% { opacity: 1; transform: scale(1) translateY(0); pointer-events: auto; }
         }
 
         .modal-close {
-            position: absolute; top: 15px; right: 15px; background: rgba(255,255,255,0.1); border: none; border-radius: 50%; width: 30px; height: 30px;
-            color: #fff; font-size: 18px; cursor: pointer; z-index: 10; display: flex; align-items: center; justify-content: center; transition: 0.2s;
+            position: absolute; top: 20px; right: 20px; background: rgba(255,255,255,0.05); border: none; border-radius: 50%; width: 34px; height: 34px;
+            color: var(--text-muted); font-size: 18px; cursor: pointer; z-index: 10; display: flex; align-items: center; justify-content: center; transition: 0.2s;
         }
-        .modal-close:hover { background: rgba(255,255,255,0.2); transform: scale(1.1); }
-        .modal-btn { width: 100%; padding: 14px; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; margin-bottom: 10px; font-size: 14px; text-transform: uppercase; letter-spacing: 1px; transition: 0.2s; }
-        .modal-btn:active { transform: scale(0.98); }
+        .modal-close:hover { background: rgba(255,255,255,0.1); color: #fff; transform: scale(1.1); }
     
-        .color-presets { display: flex; gap: 12px; justify-content: center; margin-top: 15px; }
-        .color-btn { width: 32px; height: 32px; border-radius: 50%; cursor: pointer; border: 2px solid transparent; transition: 0.2s; box-shadow: 0 4px 10px rgba(0,0,0,0.3);}
-        .color-btn.active { border-color: #fff; transform: scale(1.15); box-shadow: 0 0 15px currentColor; }
+        .color-presets { display: flex; gap: 15px; justify-content: center; margin-top: 15px; }
+        .color-btn { width: 36px; height: 36px; border-radius: 50%; cursor: pointer; border: 2px solid transparent; transition: 0.2s; box-shadow: 0 4px 10px rgba(0,0,0,0.3);}
+        .color-btn.active { border-color: #fff; transform: scale(1.15); box-shadow: 0 0 20px currentColor; }
         
-        .switch { position: relative; display: inline-block; width: 44px; height: 24px; }
+        .switch { position: relative; display: inline-block; width: 46px; height: 26px; }
         .switch input { opacity: 0; width: 0; height: 0; }
-        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: rgba(255,255,255,0.1); transition: .4s; border-radius: 24px; border: 1px solid rgba(255,255,255,0.1);}
-        .slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 2px; bottom: 2px; background-color: var(--text-muted); transition: .4s; border-radius: 50%; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: rgba(255,255,255,0.05); transition: .4s; border-radius: 26px; border: 1px solid rgba(255,255,255,0.1);}
+        .slider:before { position: absolute; content: ""; height: 20px; width: 20px; left: 2px; bottom: 2px; background-color: var(--text-muted); transition: .4s; border-radius: 50%; }
         input:checked + .slider { background-color: var(--accent); border-color: var(--accent); }
         input:checked + .slider:before { transform: translateX(20px); background-color: #000; }
         
-        .eval-source { font-size: 10px; color: var(--text-muted); margin-top: 15px; border-top: 1px solid var(--glass-border); padding-top: 12px; }
-        .combo-box { background: rgba(0,0,0,0.4); border-radius: 12px; padding: 12px; text-align: left; font-size: 12px; margin-bottom: 15px; border: 1px solid var(--glass-border); color: var(--text-main); }
-        .combo-line { margin-bottom: 8px; border-bottom: 1px dashed rgba(255,255,255,0.05); padding-bottom: 8px; }
+        .eval-source { font-size: 9px; color: var(--text-muted); margin-top: 20px; text-transform: uppercase; letter-spacing: 1px; opacity: 0.5;}
+        .combo-box { background: rgba(0,0,0,0.5); border-radius: 16px; padding: 15px; text-align: left; font-size: 13px; margin-bottom: 20px; border: 1px solid var(--glass-border); color: var(--text-main); }
+        .combo-line { margin-bottom: 10px; border-bottom: 1px solid rgba(255,255,255,0.03); padding-bottom: 10px; }
         .combo-line:last-child { margin-bottom: 0; border-bottom: none; padding-bottom: 0; }
-        .combo-name { font-weight: bold; color: #fff; font-size: 13px;}
+        .combo-name { font-weight: 800; color: #fff; font-size: 14px;}
+        
+        /* Скроллбар для модалки */
+        .modal-content::-webkit-scrollbar { width: 4px; }
+        .modal-content::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 4px; }
     </style>
 </head>
 <body>
 
+    <!-- ПАРЯЩАЯ ШАПКА -->
     <div class="top-bar">
         <div id="marketTicker">⚖️ Рынок стабилен | Комиссия: 15%</div>
         <div class="balance-val"><span id="headerBalance">0</span> ₽</div>
         <div class="balance-euro" id="headerEuroContainer"><span id="headerEuro">0</span> €</div>
-        <div id="genCostHint">Стоимость SIM: 1 000 ₽</div>
+        <div id="genCostHint">Генерация SIM: 1 000 ₽</div>
     </div>
 
+    <!-- ПАРЯЩАЯ НАВИГАЦИЯ -->
     <nav class="bottom-nav">
         <div class="nav-item active" onclick="switchTab('gen', this)">
             <div class="nav-icon">🎰</div>
@@ -320,79 +291,97 @@
 
     <div id="toast-container"></div>
 
+    <!-- ИСПРАВЛЕННОЕ МОДАЛЬНОЕ ОКНО -->
     <div id="simModal" class="modal-overlay" onclick="if(event.target===this) closeModal()">
         <div class="modal-content" onclick="event.stopPropagation()">
             <button class="modal-close" onclick="closeModal()">×</button>
-            <div id="modalRarity" style="font-size: 12px; text-transform: uppercase; margin-bottom: 5px; font-weight: bold; letter-spacing: 1px;"></div>
-            <div id="modalNumber" style="font-size: 28px; font-weight: bold; font-family: 'Courier New', monospace; margin-bottom: 15px; text-shadow: 0 0 15px rgba(255,255,255,0.2);"></div>
             
-            <div style="background: rgba(255,255,255,0.03); border-radius: 15px; padding: 15px; margin-bottom: 20px; border: 1px solid var(--glass-border);">
+            <div id="modalRarity" style="font-size: 11px; text-transform: uppercase; margin-bottom: 8px; font-weight: 800; letter-spacing: 2px;"></div>
+            <div id="modalNumber" style="font-size: 28px; font-weight: bold; font-family: 'Courier New', monospace; margin-bottom: 20px; color: #fff;"></div>
+            
+            <div style="background: rgba(255,255,255,0.02); border-radius: 20px; padding: 20px; margin-bottom: 20px; border: 1px solid var(--glass-border);">
                 
-                <div style="display: flex; justify-content: space-between; font-size: 13px; color: var(--text-main); margin-bottom: 10px;">
-                    <span>Оператор:</span> <span id="modalOperator" style="font-weight:bold; color:var(--accent);"></span>
+                <div style="display: flex; justify-content: space-between; font-size: 13px; color: var(--text-muted); margin-bottom: 15px;">
+                    <span>Оператор связи</span> <span id="modalOperator" style="font-weight:bold; color:#fff;"></span>
                 </div>
                 
-                <div style="display: flex; justify-content: space-between; font-size: 13px; color: var(--text-main); margin-bottom: 10px;">
-                    <span>Индекс красоты:</span> <span id="modalBeautyIndex" style="font-weight:bold; color:#fff; background: rgba(255,255,255,0.1); padding: 2px 8px; border-radius: 10px;"></span>
+                <div style="display: flex; justify-content: space-between; align-items: center; font-size: 13px; color: var(--text-muted); margin-bottom: 15px;">
+                    <span>Индекс красоты</span> <span id="modalBeautyIndex" style="font-weight:bold; color:var(--accent); background: rgba(0,240,255,0.1); padding: 4px 10px; border-radius: 12px; font-family: monospace;"></span>
                 </div>
 
                 <div class="combo-box" id="modalComboLines"></div>
                 
-                <div id="modalMultiplier" style="font-size: 13px; color: var(--accent); font-weight: bold; margin-bottom: 10px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px; text-align: left;"></div>
+                <div id="modalMultiplier" style="font-size: 12px; color: var(--warning); font-weight: bold; margin-bottom: 15px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 15px; text-align: left; text-transform: uppercase; letter-spacing: 0.5px;"></div>
                 
-                <div style="display: flex; justify-content: space-between; font-size: 13px; color: var(--text-main); margin-bottom: 5px;">
-                    <span>Оценка рынка:</span> <span id="modalBasePrice" style="font-family: monospace;"></span>
+                <div style="display: flex; justify-content: space-between; font-size: 14px; color: var(--text-muted); margin-bottom: 8px;">
+                    <span>Оценка рынка</span> <span id="modalBasePrice" style="font-family: monospace; color: #fff;"></span>
                 </div>
-                <div style="display: flex; justify-content: space-between; font-size: 13px; color: var(--danger); margin-bottom: 5px;">
-                    <span>Комиссия (15%):</span> <span id="modalComm" style="font-family: monospace;"></span>
+                <div style="display: flex; justify-content: space-between; font-size: 14px; color: var(--danger); margin-bottom: 8px;">
+                    <span>Комиссия (15%)</span> <span id="modalComm" style="font-family: monospace;"></span>
                 </div>
-                <div style="display: flex; justify-content: space-between; font-size: 20px; color: #ffd700; font-weight: bold; margin-top: 12px; padding-top: 10px; border-top: 1px solid rgba(255,255,255,0.1);">
-                    <span>Прибыль:</span> <span id="modalFinalPrice" style="text-align: right;"></span>
+                <div style="display: flex; justify-content: space-between; align-items: center; font-size: 22px; color: #ffd700; font-weight: 800; margin-top: 15px; padding-top: 15px; border-top: 1px solid rgba(255,255,255,0.05);">
+                    <span style="font-size: 14px; color: var(--text-main); font-weight: 600; text-transform: uppercase; letter-spacing: 1px;">Чистая прибыль</span> <span id="modalFinalPrice" style="text-align: right;"></span>
                 </div>
-                <div id="modalSource" class="eval-source"></div>
             </div>
 
             <div>
-                <button class="modal-btn" id="modalEquipBtn" style="background: var(--accent); color: #000; box-shadow: 0 4px 15px rgba(102, 252, 241, 0.3);" onclick="modalEquip()"></button>
-                <button class="modal-btn" id="modalSafeBtn" style="background: rgba(255,255,255,0.1); color: white; border: 1px solid var(--glass-border);" onclick="modalToggleSafe()"></button>
-                <button class="modal-btn" id="modalSellBtn" style="background: var(--danger); color: white; box-shadow: 0 4px 15px rgba(248, 81, 73, 0.3);" onclick="modalSell()">Продать</button>
+                <button class="btn-full primary" id="modalEquipBtn" style="margin-bottom: 12px;" onclick="modalEquip()"></button>
+                <div style="display: flex; gap: 10px;">
+                    <button class="btn-full" id="modalSafeBtn" style="flex: 1; font-size: 12px; margin-bottom: 0;" onclick="modalToggleSafe()"></button>
+                    <button class="btn-full danger" id="modalSellBtn" style="flex: 1; font-size: 12px; margin-bottom: 0;" onclick="modalSell()">Продать</button>
+                </div>
             </div>
+            
+            <div id="modalSource" class="eval-source"></div>
         </div>
     </div>
 
+    <!-- КОНТЕНТ ВЛАДОК -->
     <div class="content">
+        
+        <!-- Вкладка ГАЧА -->
         <div id="tab-gen" class="tab-content active">
             <div class="generator-container">
                 <div id="history-container"></div>
+                <!-- Обертка генерирует номер по клику (кроме клика по самому номеру) -->
                 <div class="sim-wrapper" id="simWrapper" onclick="handleWrapperClick(event)">
+                    <!-- Новая Цифровая SIM-карта -->
                     <div class="sim-card" id="simCard">
-                        <div class="sim-chip"></div>
-                        <div class="sim-logo">PREMIUM</div>
-                        <div class="sim-number" id="simNumber" onclick="inspectLastSim(event)">+7 (***) ***-**-**</div>
+                        <div class="card-header">
+                            <div class="digital-chip"></div>
+                            <div class="card-operator" id="cardOperator">ПОИСК СЕТИ</div>
+                        </div>
+                        <div class="card-center">
+                            <!-- Клик по номеру вызывает inspectLastSim с блокировкой генерации -->
+                            <div class="sim-number" id="simNumber" onclick="inspectLastSim(event)">+7 (***) ***-**-**</div>
+                        </div>
+                        <div class="card-footer">
+                            <div id="cardRarity">ОЖИДАНИЕ</div>
+                            <div id="cardPrice">--- ₽</div>
+                        </div>
                     </div>
                 </div>
-                <div class="click-hint">Нажми на карту, чтобы крутить!</div>
+                <div class="click-hint">Нажмите на карту для генерации</div>
+                
                 <div class="result-panel" id="resultPanel">
-                    <div id="rarityLabel"></div>
-                    <div id="priceLabel"></div>
-                    <div id="euroLabel"></div>
-                    <div id="descLabel"></div>
-                    <div id="operatorLabel"></div>
+                    <!-- Показываем только прибыль от последней симки для минимализма -->
+                    <div id="profitLabel">+0 ₽</div>
                 </div>
             </div>
         </div>
 
+        <!-- Вкладка СЕЙФ -->
         <div id="tab-col" class="tab-content">
             <div class="glass-panel">
-                <div style="font-size: 14px; margin-bottom: 10px;">Быстрая продажа (из коллекции)</div>
+                <div style="font-size: 12px; font-weight: 800; text-transform: uppercase; color: var(--text-muted); margin-bottom: 12px; letter-spacing: 1px;">Быстрая продажа</div>
                 <div class="mass-sell-tags" id="massSellTags"></div>
-                <button class="btn-full primary" onclick="sellSelectedRarities()">Продать выбранные редкости</button>
-                <button class="btn-full danger" onclick="sellAllUnprotected()">Продать всё незащищенное</button>
+                <button class="btn-full primary" style="font-size: 12px; padding: 12px;" onclick="sellSelectedRarities()">Продать выбранные</button>
+                <button class="btn-full danger" style="font-size: 12px; padding: 12px;" onclick="sellAllUnprotected()">Продать всё незащищенное</button>
             </div>
             
             <div class="filters">
-                <div style="font-size: 14px; font-weight: bold; color: var(--accent);">
-                    Слоты: <span id="colCapacityCount">0/20</span>
+                <div style="font-size: 12px; font-weight: bold; color: var(--accent); text-transform: uppercase; letter-spacing: 1px;">
+                    Слоты: <span id="colCapacityCount" style="color: #fff;">0/20</span>
                 </div>
                 <select id="sortPrice" onchange="renderCollection()">
                     <option value="desc">Сначала дорогие</option>
@@ -402,26 +391,34 @@
             <div class="grid" id="collectionGrid"></div>
         </div>
 
+        <!-- Вкладка БИЗНЕС -->
         <div id="tab-upg" class="tab-content">
-            <div style="margin-bottom: 20px; color: var(--text-muted); font-size: 13px; line-height: 1.5; text-align: center;">Вложите деньги в развитие бизнеса.<br>Комиссия при продаже всегда составляет 15%.</div>
+            <div style="margin-bottom: 20px; color: var(--text-muted); font-size: 12px; line-height: 1.6; text-align: center; padding: 0 20px;">Инвестируйте в серверы и алгоритмы для повышения вероятности элитных номеров.</div>
             <div id="upgradesList"></div>
         </div>
 
+        <!-- Вкладка ПРОФИЛЬ -->
         <div id="tab-prof" class="tab-content">
-            <div class="glass-panel" style="text-align: center; padding: 30px;">
-                <div style="font-size: 50px; margin-bottom: 10px;">💼</div>
-                <div style="color: var(--text-muted); font-size: 12px; text-transform: uppercase; letter-spacing: 1px;">Ваш эксклюзивный номер</div>
-                <div id="profEquipped" style="font-size: 24px; font-family: monospace; font-weight: bold; margin-top: 10px; color: var(--accent);">Нет номера</div>
+            <div class="glass-panel" style="text-align: center; padding: 30px 15px;">
+                <div style="font-size: 40px; margin-bottom: 15px; filter: drop-shadow(0 0 10px rgba(255,255,255,0.2));">📱</div>
+                <div style="color: var(--text-muted); font-size: 11px; text-transform: uppercase; letter-spacing: 1.5px; font-weight: 700;">Ваш активный номер</div>
+                <div id="profEquipped" style="font-size: 22px; font-family: monospace; font-weight: bold; margin-top: 10px; color: var(--accent);">Нет номера</div>
             </div>
 
-            <div class="glass-panel" id="autosellerProfilePanel" style="display: none; border: 1px solid rgba(129,199,132,0.5); box-shadow: inset 0 0 20px rgba(129,199,132,0.05);">
-                <h3 style="margin-top:0; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px; color: #81c784;">🤖 Автоселлер</h3>
-                <div id="asStatus" style="font-size: 13px; margin-bottom: 15px; color: var(--text-main); line-height: 1.5;"></div>
-                <button id="asUpgBtn" class="btn-full" style="margin-bottom:0; background: #81c784; color: #000; box-shadow: 0 4px 15px rgba(129,199,132,0.3); border: none;" onclick="upgradeAutosellerProfile()"></button>
+            <!-- ТЕЛЕГРАМ ОБЛАКО -->
+            <div class="glass-panel" style="text-align: center; padding: 20px;">
+                <div style="font-size: 14px; font-weight: bold; color: #fff; margin-bottom: 5px;">☁️ Telegram Cloud</div>
+                <div id="cloudSyncStatus" style="font-size: 12px; font-weight: 600; color: var(--text-muted);">Проверка статуса...</div>
+            </div>
+
+            <div class="glass-panel" id="autosellerProfilePanel" style="display: none; border-color: rgba(16, 185, 129, 0.3);">
+                <h3 style="margin-top:0; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 15px; color: var(--success); font-size: 14px; text-transform: uppercase; letter-spacing: 1px;">🤖 Автоселлер</h3>
+                <div id="asStatus" style="font-size: 13px; margin-bottom: 20px; color: var(--text-main); line-height: 1.6;"></div>
+                <button id="asUpgBtn" class="btn-full" style="margin-bottom:0; background: var(--success); color: #000; box-shadow: 0 4px 20px rgba(16, 185, 129, 0.2); border: none;" onclick="upgradeAutosellerProfile()"></button>
             </div>
 
             <div class="glass-panel">
-                <h3 style="margin-top:0; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px;">Анимации выпадения</h3>
+                <h3 style="margin-top:0; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 15px; font-size: 14px; text-transform: uppercase; letter-spacing: 1px; color: #fff;">Настройки графики</h3>
                 <div class="stat-item">
                     <span>Анимация Эпических</span>
                     <label class="switch"><input type="checkbox" id="animEpic" onchange="toggleSetting('animEpic', this.checked)"><span class="slider"></span></label>
@@ -435,44 +432,33 @@
                     <label class="switch"><input type="checkbox" id="animMythic" onchange="toggleSetting('animMythic', this.checked)"><span class="slider"></span></label>
                 </div>
                 
-                <div style="font-size: 11px; text-transform: uppercase; color: var(--text-muted); text-align: center; margin-bottom: 10px; margin-top:25px; letter-spacing: 1px;">Цвет интерфейса</div>
+                <div class="stat-header" style="text-align: center; margin-top: 25px;">Цветовая тема</div>
                 <div class="color-presets">
-                    <div class="color-btn" style="background:#66fcf1; color:#66fcf1;" onclick="changeColor('#66fcf1', this)"></div>
-                    <div class="color-btn" style="background:#ff4c4c; color:#ff4c4c;" onclick="changeColor('#ff4c4c', this)"></div>
+                    <div class="color-btn" style="background:#00f0ff; color:#00f0ff;" onclick="changeColor('#00f0ff', this)"></div>
+                    <div class="color-btn" style="background:#ff3366; color:#ff3366;" onclick="changeColor('#ff3366', this)"></div>
                     <div class="color-btn" style="background:#ffd700; color:#ffd700;" onclick="changeColor('#ffd700', this)"></div>
-                    <div class="color-btn" style="background:#ba68c8; color:#ba68c8;" onclick="changeColor('#ba68c8', this)"></div>
-                    <div class="color-btn" style="background:#81c784; color:#81c784;" onclick="changeColor('#81c784', this)"></div>
+                    <div class="color-btn" style="background:#b084e9; color:#b084e9;" onclick="changeColor('#b084e9', this)"></div>
+                    <div class="color-btn" style="background:#10b981; color:#10b981;" onclick="changeColor('#10b981', this)"></div>
                 </div>
             </div>
 
             <div class="glass-panel">
-                <h3 style="margin-top:0; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px;">Статистика бизнеса</h3>
+                <h3 style="margin-top:0; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 15px; font-size: 14px; text-transform: uppercase; letter-spacing: 1px; color: #fff;">Сводка</h3>
                 
-                <div class="stat-item"><span>Всего генераций:</span><strong id="profTotalGens">0</strong></div>
+                <div class="stat-item"><span>Всего генераций:</span><strong id="profTotalGens" style="color: #fff;">0</strong></div>
                 <div class="stat-item"><span>Общий доход (₽):</span><strong id="profTotalEarned" style="color: #ffd700">0 ₽</strong></div>
-                <div class="stat-item"><span>Общий доход (€):</span><strong id="profTotalEuro" style="color: #81c784">0 €</strong></div>
+                <div class="stat-item"><span>Общий доход (€):</span><strong id="profTotalEuro" style="color: var(--success)">0 €</strong></div>
                 
-                <div class="stat-header">Редкости номеров</div>
-                <div class="stat-item"><span>Обычные:</span><strong id="stat-common">0</strong></div>
-                <div class="stat-item"><span>Необычные:</span><strong id="stat-uncommon">0</strong></div>
-                <div class="stat-item"><span>Редкие:</span><strong id="stat-rare">0</strong></div>
-                <div class="stat-item"><span>Эпические:</span><strong id="stat-epic">0</strong></div>
-                <div class="stat-item"><span>Легендарные:</span><strong id="stat-legendary">0</strong></div>
-                <div class="stat-item"><span>Мифические:</span><strong id="stat-mythic">0</strong></div>
-
-                <div class="stat-header">Редкие паттерны</div>
-                <div class="stat-item"><span>🌌 Абсолюты (10 од.):</span><strong id="stat-god">0</strong></div>
-                <div class="stat-item"><span>🌟 Легенды (8-9 од.):</span><strong id="stat-legend">0</strong></div>
-                <div class="stat-item"><span>👑 Бриллианты (7 од.):</span><strong id="stat-diamond">0</strong></div>
-                <div class="stat-item"><span>💎 Платиновые (6 од.):</span><strong id="stat-platinum">0</strong></div>
-                <div class="stat-item"><span>🥇 Золотые (5 од.):</span><strong id="stat-gold">0</strong></div>
-                <div class="stat-item"><span>🥈 Серебряные (4 од.):</span><strong id="stat-silver">0</strong></div>
-                <div class="stat-item"><span>🪘 Ритмичные (ABAB):</span><strong id="stat-rhythm">0</strong></div>
-                <div class="stat-item"><span>🦋 Бабочки (AABBCC):</span><strong id="stat-butterfly">0</strong></div>
-                <div class="stat-item"><span>🎯 Тысячники (000):</span><strong id="stat-zeros">0</strong></div>
+                <div class="stat-header">База редкостей</div>
+                <div class="stat-item"><span>Обычные:</span><strong id="stat-common" style="color: #fff;">0</strong></div>
+                <div class="stat-item"><span>Необычные:</span><strong id="stat-uncommon" style="color: #fff;">0</strong></div>
+                <div class="stat-item"><span>Редкие:</span><strong id="stat-rare" style="color: #fff;">0</strong></div>
+                <div class="stat-item"><span>Эпические:</span><strong id="stat-epic" style="color: #fff;">0</strong></div>
+                <div class="stat-item"><span>Легендарные:</span><strong id="stat-legendary" style="color: #fff;">0</strong></div>
+                <div class="stat-item"><span>Мифические:</span><strong id="stat-mythic" style="color: #fff;">0</strong></div>
             </div>
 
-            <button class="btn-full danger" style="margin-top: 10px;" onclick="resetProgress()">Сбросить весь прогресс (Удалить сейв)</button>
+            <button class="btn-full danger" style="margin-top: 10px;" onclick="resetProgress()">Удалить аккаунт</button>
         </div>
     </div>
 
@@ -480,6 +466,9 @@
         if (window.Telegram && window.Telegram.WebApp) {
             window.Telegram.WebApp.ready();
             window.Telegram.WebApp.expand();
+            // Устанавливаем цвета под тему
+            window.Telegram.WebApp.setHeaderColor('#050507');
+            window.Telegram.WebApp.setBackgroundColor('#050507');
         }
 
         const OPERATORS = {
@@ -497,12 +486,12 @@
         };
 
         const RARITIES = {
-            common: { id: 'common', name: 'Обычный', color: '#b0bec5', bg: 'linear-gradient(135deg, #37474f, #263238)', min: 250, max: 750 },
-            uncommon: { id: 'uncommon', name: 'Необычный', color: '#81c784', bg: 'linear-gradient(135deg, #2e7d32, #1b5e20)', min: 1000, max: 2500 },
-            rare: { id: 'rare', name: 'Редкий', color: '#64b5f6', bg: 'linear-gradient(135deg, #1565c0, #0d47a1)', min: 5000, max: 12000 },
-            epic: { id: 'epic', name: 'Эпический', color: '#ba68c8', bg: 'linear-gradient(135deg, #6a1b9a, #4a148c)', min: 25000, max: 60000 },
-            legendary: { id: 'legendary', name: 'Легендарный', color: '#ffca28', bg: 'linear-gradient(135deg, #ff8f00, #ff6f00)', min: 150000, max: 400000 },
-            mythic: { id: 'mythic', name: 'Мифический', color: '#ff5252', bg: 'linear-gradient(135deg, #d50000, #b71c1c)', min: 1500000, max: 5000000 }
+            common: { id: 'common', name: 'Обычный', color: '#94a3b8', bg: 'linear-gradient(145deg, rgba(30, 34, 45, 0.8), rgba(15, 17, 25, 0.9))', min: 250, max: 750 },
+            uncommon: { id: 'uncommon', name: 'Необычный', color: '#10b981', bg: 'linear-gradient(145deg, rgba(16, 185, 129, 0.2), rgba(15, 17, 25, 0.9))', min: 1000, max: 2500 },
+            rare: { id: 'rare', name: 'Редкий', color: '#3b82f6', bg: 'linear-gradient(145deg, rgba(59, 130, 246, 0.3), rgba(15, 17, 25, 0.9))', min: 5000, max: 12000 },
+            epic: { id: 'epic', name: 'Эпический', color: '#a855f7', bg: 'linear-gradient(145deg, rgba(168, 85, 247, 0.4), rgba(15, 17, 25, 0.9))', min: 25000, max: 60000 },
+            legendary: { id: 'legendary', name: 'Легендарный', color: '#f59e0b', bg: 'linear-gradient(145deg, rgba(245, 158, 11, 0.5), rgba(15, 17, 25, 0.9))', min: 150000, max: 400000 },
+            mythic: { id: 'mythic', name: 'Мифический', color: '#ff3366', bg: 'linear-gradient(145deg, rgba(255, 51, 102, 0.6), rgba(15, 17, 25, 0.9))', min: 1500000, max: 5000000 }
         };
 
         const CAPACITY_LEVELS = [20, 100, 250, 500, 750, 1000];
@@ -515,32 +504,65 @@
         };
 
         const UPGRADES = {
-            capacity: { id: 'capacity', name: 'Сервер хранения', desc: 'Увеличивает вместимость сейфа', maxLevel: 5, baseCost: 10000, mult: 4, curr: 'rub' },
-            luck: { id: 'luck', name: 'Связи у оператора', desc: 'Лучший выбор при генерации', maxLevel: 5, baseCost: 50000, mult: 4, curr: 'rub' },
-            autoseller: { id: 'autoseller', name: 'Автоселлер', desc: 'Продает номера при 100% заполнении.', maxLevel: 1, baseCost: 25000, mult: 1, curr: 'rub' }
+            capacity: { id: 'capacity', name: 'Дата-центр', desc: 'Увеличивает количество слотов в сейфе', maxLevel: 5, baseCost: 10000, mult: 4, curr: 'rub' },
+            luck: { id: 'luck', name: 'Связи дилера', desc: 'Алгоритм ищет лучшие номера при генерации', maxLevel: 5, baseCost: 50000, mult: 4, curr: 'rub' },
+            autoseller: { id: 'autoseller', name: 'Автоселлер', desc: 'Автоматическая продажа мусора из сейфа', maxLevel: 1, baseCost: 25000, mult: 1, curr: 'rub' }
+        };
+
+        // --- ОБЛАКО TELEGRAM ---
+        const CloudSaveManager = {
+            save: function(stateObj) {
+                if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.CloudStorage) {
+                    try {
+                        const dataStr = JSON.stringify(stateObj);
+                        const chunks = dataStr.match(/.{1,4000}/g) || [];
+                        window.Telegram.WebApp.CloudStorage.setItem('save_count', chunks.length.toString(), (err) => {
+                            if(!err) chunks.forEach((c, i) => window.Telegram.WebApp.CloudStorage.setItem('save_c_' + i, c));
+                        });
+                    } catch(e) { console.error("Cloud save error", e); }
+                }
+            },
+            load: function(callback) {
+                if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.CloudStorage) {
+                    try {
+                        window.Telegram.WebApp.CloudStorage.getItem('save_count', (err, countStr) => {
+                            if (err || !countStr) return callback(null);
+                            let count = parseInt(countStr);
+                            let keys = [];
+                            for(let i=0; i<count; i++) keys.push('save_c_' + i);
+                            window.Telegram.WebApp.CloudStorage.getItems(keys, (err, vals) => {
+                                if (err || !vals) return callback(null);
+                                let json = "";
+                                for(let i=0; i<count; i++) json += (vals['save_c_' + i] || "");
+                                try { callback(JSON.parse(json)); } catch(e) { callback(null); }
+                            });
+                        });
+                    } catch(e) { callback(null); }
+                } else {
+                    callback(null);
+                }
+            }
         };
 
         const MAIN_SAVE_KEY = 'premium_sim_gacha_main'; 
         const defaultState = {
-            version: 25, balance: 10000, euro: 0, collection: [], equipped: null,
+            version: 26, balance: 10000, euro: 0, collection: [], equipped: null,
             stats: { generated: 0, earned: 0, earnedEuro: 0, rarities: { common: 0, uncommon: 0, rare: 0, epic: 0, legendary: 0, mythic: 0 },
             patterns: { god: 0, legend: 0, diamond: 0, platinum: 0, gold: 0, silver: 0, rhythm: 0, butterfly: 0, twopairs: 0, zeros: 0 } },
             upgrades: { capacity: 0, luck: 0, autoseller: 0 },
             market: { active: false, rarityId: null, mult: 1 },
-            settings: { color: '#66fcf1', animEpic: true, animLegendary: true, animMythic: true }
+            settings: { color: '#00f0ff', animEpic: true, animLegendary: true, animMythic: true }
         };
 
         let state;
         let savedData = localStorage.getItem(MAIN_SAVE_KEY);
 
-        // --- АВТОМАТИЧЕСКОЕ СПАСЕНИЕ СТАРЫХ СОХРАНЕНИЙ ---
         if (!savedData) {
-            for (let i = 24; i >= 9; i--) {
+            for (let i = 25; i >= 9; i--) {
                 let oldSave = localStorage.getItem('simgacha_save_v' + i);
                 if (oldSave) {
                     savedData = oldSave;
                     localStorage.setItem(MAIN_SAVE_KEY, oldSave);
-                    console.log("Успешно восстановлено сохранение v" + i);
                     break;
                 }
             }
@@ -549,11 +571,32 @@
         try { state = savedData ? JSON.parse(savedData) : JSON.parse(JSON.stringify(defaultState)); } 
         catch (e) { state = JSON.parse(JSON.stringify(defaultState)); }
 
+        // Облачная синхронизация
+        CloudSaveManager.load((cloudState) => {
+            let syncStatus = document.getElementById('cloudSyncStatus');
+            if (cloudState && cloudState.stats && cloudState.stats.generated > (state.stats.generated || 0)) {
+                state = cloudState;
+                localStorage.setItem(MAIN_SAVE_KEY, JSON.stringify(state));
+                updateBalanceUI();
+                if(document.getElementById('tab-prof').classList.contains('active')) renderProfile();
+                if(document.getElementById('tab-upg').classList.contains('active')) renderUpgrades();
+                if(document.getElementById('tab-col').classList.contains('active')) renderCollection();
+                showToast("☁️ Прогресс восстановлен из облака", "success");
+                if (syncStatus) { syncStatus.innerText = "Синхронизировано"; syncStatus.style.color = "var(--success)"; }
+            } else {
+                if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.CloudStorage) {
+                    if (syncStatus) { syncStatus.innerText = "Включена"; syncStatus.style.color = "var(--accent)"; }
+                    CloudSaveManager.save(state); 
+                } else {
+                    if (syncStatus) { syncStatus.innerText = "Только внутри Telegram"; syncStatus.style.color = "var(--danger)"; }
+                }
+            }
+        });
+
+        // --- ИСТИННЫЙ РАНДОМ И ОЦЕНКА ---
         function trueRandomDigit() {
             if (window.crypto && window.crypto.getRandomValues) {
-                let array = new Uint8Array(1);
-                window.crypto.getRandomValues(array);
-                return array[0] % 10;
+                let array = new Uint8Array(1); window.crypto.getRandomValues(array); return array[0] % 10;
             }
             return Math.floor(Math.random() * 10);
         }
@@ -609,20 +652,15 @@
             else if (/000$/.test(tail)) patternsFound.push({ name: '🎯 Тысячник (000)', score: 50, desc: 'Номер заканчивается на 3 нуля.' });
 
             let yyCount = (tail.match(/69/g) || []).length;
-            if (yyCount > 0) patternsFound.push({ name: `☯ Инь и Ян (x${yyCount})`, score: 0, desc: 'Содержит популярную комбинацию 69. Даёт +15% к финальной цене.' });
+            if (yyCount > 0) patternsFound.push({ name: `☯ Инь и Ян (x${yyCount})`, score: 0, desc: 'Содержит комбинацию 69. Даёт +15% к финальной цене.' });
 
             patternsFound.sort((a, b) => b.score - a.score); 
             let tailScore = 0;
             let comboLines = [];
             let comboMult = 1.0;
 
-            if (opCombo) {
-                comboLines.push({ name: opCombo.name, points: opCombo.score, desc: opCombo.desc });
-            }
-
-            if (patternsFound.length === 0) {
-                patternsFound.push({ name: 'Обычный номер', score: 0, desc: 'Случайная комбинация без особенностей.' });
-            }
+            if (opCombo) comboLines.push({ name: opCombo.name, points: opCombo.score, desc: opCombo.desc });
+            if (patternsFound.length === 0) patternsFound.push({ name: 'Обычный номер', score: 0, desc: 'Случайная комбинация без особенностей.' });
 
             patternsFound.forEach((p, idx) => {
                 let actualPoints = Math.floor(p.score * comboMult);
@@ -658,32 +696,22 @@
             let opName = OPERATORS[prefix] || "Федеральный оператор";
 
             return {
-                number: numberStr,
-                operatorName: opName,
-                primaryPatternName: comboLines[0] ? comboLines[0].name : "Обычный номер",
-                comboLines: comboLines,
-                rarityId: rarityId,
-                basePrice: finalPrice,
-                score: totalScore,
-                source: 'Локальная алгоритмическая модель (v25)'
+                number: numberStr, operatorName: opName, primaryPatternName: comboLines[0] ? comboLines[0].name : "Обычный номер",
+                comboLines: comboLines, rarityId: rarityId, basePrice: finalPrice, score: totalScore,
+                source: 'Локальная алгоритмическая модель (v26)'
             };
         }
 
-        if(state.version !== 25) {
-            console.log("Migration to v25: Static Main Key + Stats Fix...");
-            if(typeof state.balance !== 'number' || isNaN(state.balance)) state.balance = defaultState.balance;
-            if(typeof state.euro !== 'number' || isNaN(state.euro)) state.euro = 0;
-            if(!state.stats.patterns) state.stats.patterns = defaultState.stats.patterns;
-            
+        // --- МИГРАЦИЯ НА V26 ---
+        if(state.version !== 26) {
+            console.log("Migration to v26: UI Redesign...");
             state.collection.forEach(item => {
                 if (!item.number) item.number = "+7 (999) 000-00-00"; 
                 let evalData = evaluatePhoneNumber(item.number);
                 item.rarity = RARITIES[evalData.rarityId] || RARITIES['common'];
                 item.baseDynamicPrice = evalData.basePrice || 100;
-                item.desc = evalData.primaryPatternName;
-                item.comboLines = evalData.comboLines;
-                item.score = evalData.score;
-                item.operator = evalData.operatorName;
+                item.desc = evalData.primaryPatternName; item.comboLines = evalData.comboLines;
+                item.score = evalData.score; item.operator = evalData.operatorName;
             });
 
             if(state.equipped) {
@@ -691,18 +719,41 @@
                 let eqEval = evaluatePhoneNumber(state.equipped.number);
                 state.equipped.rarity = RARITIES[eqEval.rarityId] || RARITIES['common'];
                 state.equipped.baseDynamicPrice = eqEval.basePrice || 100;
-                state.equipped.desc = eqEval.primaryPatternName;
-                state.equipped.comboLines = eqEval.comboLines;
-                state.equipped.score = eqEval.score;
-                state.equipped.operator = eqEval.operatorName;
+                state.equipped.desc = eqEval.primaryPatternName; state.equipped.comboLines = eqEval.comboLines;
+                state.equipped.score = eqEval.score; state.equipped.operator = eqEval.operatorName;
             }
-
-            state.version = 25;
+            state.version = 26;
             localStorage.setItem(MAIN_SAVE_KEY, JSON.stringify(state));
         }
 
-        function saveGame() { localStorage.setItem(MAIN_SAVE_KEY, JSON.stringify(state)); }
+        let cloudSaveTimeout = null;
+        function saveGame() { 
+            localStorage.setItem(MAIN_SAVE_KEY, JSON.stringify(state)); 
+            if (cloudSaveTimeout) clearTimeout(cloudSaveTimeout);
+            cloudSaveTimeout = setTimeout(() => {
+                CloudSaveManager.save(state);
+                let syncStatus = document.getElementById('cloudSyncStatus');
+                if (syncStatus) {
+                    syncStatus.innerText = "Синхронизировано ✓"; syncStatus.style.color = "var(--success)";
+                    setTimeout(() => { if(syncStatus) { syncStatus.innerText = "Включена"; syncStatus.style.color = "var(--accent)"; } }, 3000);
+                }
+            }, 3000);
+        }
 
+        window.runSimTest = function() {
+            console.log("🚀 Запуск симуляции 100,000 истинно случайных генераций...");
+            let s = { common: 0, uncommon: 0, rare: 0, epic: 0, legendary: 0, mythic: 0 };
+            for(let i=0; i<100000; i++) { s[evaluatePhoneNumber(generateTrueRandomNumber()).rarityId]++; }
+            console.log("=== Результаты 100k случайных генераций ===");
+            console.log(`Обычные (Common): ${s.common} шт. (${(s.common/1000).toFixed(2)}%)`);
+            console.log(`Необычные (Uncommon): ${s.uncommon} шт. (${(s.uncommon/1000).toFixed(2)}%)`);
+            console.log(`Редкие (Rare): ${s.rare} шт. (${(s.rare/1000).toFixed(2)}%)`);
+            console.log(`Эпические (Epic): ${s.epic} шт. (${(s.epic/1000).toFixed(2)}%)`);
+            console.log(`Легендарные (Legendary): ${s.legendary} шт. (${(s.legendary/1000).toFixed(3)}%)`);
+            console.log(`Мифические (Mythic): ${s.mythic} шт. (${(s.mythic/1000).toFixed(4)}%)`);
+        };
+
+        // --- ИНТЕРФЕЙС И ВЗАИМОДЕЙСТВИЕ ---
         let isAnimating = false;
         let currentGenId = 0; 
         let selectedTags = new Set();
@@ -725,9 +776,7 @@
 
         setTimeout(() => {
             document.querySelectorAll('.color-btn').forEach(b => {
-                if(b.style.backgroundColor === state.settings.color || b.style.backgroundColor.replace(/ /g, '') === state.settings.color.replace(/ /g, '')) {
-                    b.classList.add('active');
-                }
+                if(b.style.backgroundColor === state.settings.color || b.style.backgroundColor.replace(/ /g, '') === state.settings.color.replace(/ /g, '')) b.classList.add('active');
             });
         }, 100);
 
@@ -756,8 +805,8 @@
                 document.getElementById('headerEuro').innerText = state.euro.toLocaleString('ru-RU');
             }
             document.getElementById('colCapacityCount').innerText = `${state.collection.length}/${getMaxCapacity()}`;
-            document.getElementById('colCapacityCount').style.color = state.collection.length >= getMaxCapacity() ? 'var(--danger)' : 'var(--accent)';
-            document.getElementById('genCostHint').innerText = `Стоимость SIM: ${getGenCost().toLocaleString('ru-RU')} ₽`;
+            document.getElementById('colCapacityCount').style.color = state.collection.length >= getMaxCapacity() ? 'var(--danger)' : '#fff';
+            document.getElementById('genCostHint').innerText = `Генерация: ${getGenCost().toLocaleString('ru-RU')} ₽`;
         }
 
         function switchTab(tabId, btn) {
@@ -781,10 +830,9 @@
                 state.market.rarityId = rkeys[Math.floor(Math.random() * rkeys.length)];
                 state.market.mult = (Math.random() * 1.5 + 0.5).toFixed(2);
                 let isGood = state.market.mult >= 1;
-                let text = isGood ? `📈 Спрос на ${RARITIES[state.market.rarityId].name} (x${state.market.mult})` 
-                                  : `📉 Падение цен на ${RARITIES[state.market.rarityId].name} (x${state.market.mult})`;
+                let text = isGood ? `📈 Спрос на ${RARITIES[state.market.rarityId].name} (x${state.market.mult})` : `📉 Падение цен на ${RARITIES[state.market.rarityId].name} (x${state.market.mult})`;
                 document.getElementById('marketTicker').innerHTML = `${text} | Комиссия: 15%`;
-                document.getElementById('marketTicker').style.color = isGood ? '#81c784' : '#ff5252';
+                document.getElementById('marketTicker').style.color = isGood ? 'var(--success)' : 'var(--danger)';
             }
             saveGame(); 
             if(document.getElementById('tab-col').classList.contains('active')) renderCollection();
@@ -801,7 +849,6 @@
             let mPrice = getMarketPrice(item.baseDynamicPrice, item.rarity.id);
             let totalRubProfit = Math.floor(mPrice * (1 - getCommissionPercent()/100));
             let commLost = mPrice - totalRubProfit;
-            
             if (item.rarity.id === 'mythic') {
                 let eurPart = Math.floor(totalRubProfit / 1000000);
                 let rubPart = totalRubProfit % 1000000; 
@@ -814,10 +861,7 @@
             element.innerHTML = ''; let i = 0;
             function type() { 
                 if (currentGenId !== genId) return; 
-                if (i < text.length) { 
-                    element.innerHTML += text.charAt(i); 
-                    i++; setTimeout(type, speed); 
-                } 
+                if (i < text.length) { element.innerHTML += text.charAt(i); i++; setTimeout(type, speed); } 
             }
             type();
         }
@@ -834,7 +878,6 @@
                 if (progress > 1) progress = 1;
                 
                 const easeOut = 1 - Math.pow(1 - progress, 3);
-                
                 let targetPrice = isMythic ? profitObj.rub : profitObj.fullRubPrice; 
                 let currentPrice = Math.floor(easeOut * targetPrice) || 0;
                 
@@ -844,11 +887,8 @@
                     let revealedChars = Math.floor(easeOut * finalNum.length);
                     let displayStr = "";
                     for(let i = 0; i < finalNum.length; i++) {
-                        if (i < revealedChars || finalNum[i] === '+' || finalNum[i] === ' ' || finalNum[i] === '(' || finalNum[i] === ')' || finalNum[i] === '-') {
-                            displayStr += finalNum[i];
-                        } else {
-                            displayStr += Math.floor(Math.random() * 10);
-                        }
+                        if (i < revealedChars || finalNum[i] === '+' || finalNum[i] === ' ' || finalNum[i] === '(' || finalNum[i] === ')' || finalNum[i] === '-') displayStr += finalNum[i];
+                        else displayStr += Math.floor(Math.random() * 10);
                     }
                     numEl.innerText = displayStr;
                     numEl.style.color = '#777'; 
@@ -857,12 +897,10 @@
                     priceEl.innerText = (targetPrice || 0).toLocaleString('ru-RU') + ' ₽';
                     numEl.innerText = finalNum;
                     numEl.style.color = finalColor;
-
-                    if (isMythic) {
-                        euroEl.style.display = 'block';
-                        euroEl.innerText = "+ " + (profitObj.eur || 0).toLocaleString('ru-RU') + ' €';
-                    }
+                    if (isMythic) { euroEl.style.display = 'block'; euroEl.innerText = "+ " + (profitObj.eur || 0).toLocaleString('ru-RU') + ' €'; }
                     isAnimating = false;
+                    document.getElementById('profitLabel').innerText = "+" + (targetPrice || 0).toLocaleString('ru-RU') + ' ₽';
+                    document.getElementById('profitLabel').classList.add('show');
                 }
             };
             window.requestAnimationFrame(step);
@@ -873,45 +911,41 @@
             const container = document.getElementById('history-container');
             const el = document.createElement('div');
             el.className = 'skipped-item';
-            
             let displayPrice = getMarketPrice(simData.baseDynamicPrice, simData.rarity.id).toLocaleString() + ' ₽';
-
             el.innerHTML = `
                 <div class="skipped-label">Пропущено</div>
-                <div style="background: linear-gradient(135deg, #2a2a35, #1a1a25); border: 1px solid rgba(255,255,255,0.05); padding: 10px 15px; border-radius: 10px; text-align: center;">
+                <div style="background: rgba(30,34,45,0.8); border: 1px solid rgba(255,255,255,0.1); padding: 10px 15px; border-radius: 12px; text-align: center;">
                     <div style="font-size: 10px; color: ${simData.rarity.color}; margin-bottom: 3px;">${simData.rarity.name}</div>
                     <div style="font-family: monospace; font-size: 14px; font-weight: bold; color: #fff;">${simData.number}</div>
-                    <div style="font-size: 12px; color: var(--text-main); margin-top: 3px; opacity: 0.7;">${displayPrice}</div>
+                    <div style="font-size: 12px; color: var(--text-muted); margin-top: 3px;">${displayPrice}</div>
                 </div>
             `;
             container.appendChild(el);
-            setTimeout(() => { if(el.parentNode) el.remove(); }, 600);
+            setTimeout(() => { if(el.parentNode) el.remove(); }, 700);
         }
 
+        // ПЕРЕХВАТ КЛИКА - защита от Ghost Clicks
         function handleWrapperClick(e) {
-            if (e.target.id === 'simNumber') { return; } 
+            if (e.target.id === 'simNumber') return; 
             generateSim();
         }
 
         function inspectLastSim(e) {
             e.stopPropagation();
-            if (lastGeneratedSim && !isAnimating) {
-                openModal(lastGeneratedSim.id);
-            }
+            if (lastGeneratedSim && !isAnimating) openModal(lastGeneratedSim.id);
         }
 
         function generateSim() {
             if (isAnimating) return; 
             
-            currentGenId++;
-            const thisGenId = currentGenId;
-
+            currentGenId++; const thisGenId = currentGenId;
             const card = document.getElementById('simCard');
             card.classList.remove('dramatic-glow', 'mythic-glow'); 
             document.getElementById('euroLabel').style.display = 'none';
+            document.getElementById('profitLabel').classList.remove('show');
 
             card.classList.add('pressed');
-            setTimeout(() => card.classList.remove('pressed'), 100);
+            setTimeout(() => card.classList.remove('pressed'), 150);
 
             const cost = getGenCost();
             if (state.balance < cost) {
@@ -924,11 +958,11 @@
                 }
             }
 
+            // Автоселлер
             if (state.collection.length >= getMaxCapacity()) {
                 if (state.upgrades.autoseller > 0) {
                     let lvl = state.upgrades.autoseller;
                     let allowed = AUTOSELLER_CONFIG[lvl].sells;
-
                     let soldRub = 0, soldEur = 0, count = 0, toKeep = [];
 
                     state.collection.forEach(item => {
@@ -944,14 +978,8 @@
                         if(soldEur > 0) { state.euro += soldEur; state.stats.earnedEuro += soldEur; }
                         state.collection = toKeep;
                         showToast(`Автоселлер: продано ${count} шт (+${soldRub.toLocaleString()} ₽)`, 'success');
-                    } else {
-                        showToast('Сейф полон! Автоселлеру нечего продавать.', 'error');
-                        return;
-                    }
-                } else {
-                    showToast('Коллекция переполнена! Продайте номера.', 'error');
-                    return;
-                }
+                    } else { showToast('Сейф полон! Автоселлеру нечего продавать.', 'error'); return; }
+                } else { showToast('Коллекция переполнена! Продайте номера.', 'error'); return; }
             }
 
             try {
@@ -960,58 +988,34 @@
 
                 let luckLvl = state.upgrades.luck || 0;
                 let rollsCount = 1 + luckLvl; 
-                
                 let bestEval = null;
 
                 for(let i=0; i<rollsCount; i++) {
-                    let number;
-                    let attempts = 0;
-                    do {
-                        number = generateTrueRandomNumber();
-                        attempts++;
-                    } while (state.collection.some(item => item.number === number) && attempts < 10);
-
+                    let number; let attempts = 0;
+                    do { number = generateTrueRandomNumber(); attempts++; } while (state.collection.some(item => item.number === number) && attempts < 10);
                     let currEval = evaluatePhoneNumber(number);
-                    if (!bestEval || currEval.score > bestEval.score) {
-                        bestEval = currEval;
-                    }
+                    if (!bestEval || currEval.score > bestEval.score) bestEval = currEval;
                 }
 
                 let finalRarityId = bestEval.rarityId;
                 let rarity = RARITIES[finalRarityId] || RARITIES['common'];
+                
+                // Внутреннее обновление карточки
+                document.getElementById('cardOperator').innerText = "ПОИСК СЕТИ";
+                document.getElementById('cardRarity').innerText = "Анализ";
+                document.getElementById('cardRarity').style.color = "var(--text-muted)";
 
                 const newSim = {
-                    id: Date.now() + Math.random(),
-                    number: bestEval.number, 
-                    rarity: rarity, 
-                    locked: false,
-                    baseDynamicPrice: bestEval.basePrice, 
-                    desc: bestEval.primaryPatternName,
-                    comboLines: bestEval.comboLines,
-                    score: bestEval.score,
-                    operator: bestEval.operatorName
+                    id: Date.now() + Math.random(), number: bestEval.number, rarity: rarity, locked: false,
+                    baseDynamicPrice: bestEval.basePrice, desc: bestEval.primaryPatternName,
+                    comboLines: bestEval.comboLines, score: bestEval.score, operator: bestEval.operatorName
                 };
 
                 let profitObj = getSellProfit(newSim);
-
                 state.collection.unshift(newSim); 
                 lastGeneratedSim = newSim; 
-                
-                // --- Статистика ---
-                if (bestEval.comboLines.find(c => c.name.includes('Абсолют'))) state.stats.patterns.god = (state.stats.patterns.god || 0) + 1;
-                else if (bestEval.comboLines.find(c => c.name.includes('Легенда'))) state.stats.patterns.legend = (state.stats.patterns.legend || 0) + 1;
-                else if (bestEval.comboLines.find(c => c.name.includes('Бриллиант'))) state.stats.patterns.diamond = (state.stats.patterns.diamond || 0) + 1;
-                else if (bestEval.comboLines.find(c => c.name.includes('Платина'))) state.stats.patterns.platinum = (state.stats.patterns.platinum || 0) + 1;
-                else if (bestEval.comboLines.find(c => c.name.includes('Золотой'))) state.stats.patterns.gold = (state.stats.patterns.gold || 0) + 1;
-                else if (bestEval.comboLines.find(c => c.name.includes('Серебряный'))) state.stats.patterns.silver = (state.stats.patterns.silver || 0) + 1;
-                
-                if (bestEval.comboLines.find(c => c.name.includes('Ритм (ABAB)'))) state.stats.patterns.rhythm = (state.stats.patterns.rhythm || 0) + 1;
-                if (bestEval.comboLines.find(c => c.name.includes('Бабочка'))) state.stats.patterns.butterfly = (state.stats.patterns.butterfly || 0) + 1;
-                if (bestEval.comboLines.find(c => c.name.includes('Тысячник (000)'))) state.stats.patterns.zeros = (state.stats.patterns.zeros || 0) + 1;
 
                 card.style.background = rarity.bg;
-                let rLabel = document.getElementById('rarityLabel');
-                rLabel.innerText = rarity.name; rLabel.style.color = rarity.color;
                 
                 saveGame(); updateBalanceUI();
 
@@ -1026,65 +1030,37 @@
                     
                     if (rarity.id === 'mythic') {
                         card.classList.add('mythic-glow');
-                        let flash = document.createElement('div');
-                        flash.className = 'mythic-flash';
-                        document.body.appendChild(flash);
-                        setTimeout(()=>flash.remove(), 2500);
-                    } else {
-                        card.classList.add('dramatic-glow');
-                    }
+                        let flash = document.createElement('div'); flash.className = 'mythic-flash';
+                        document.body.appendChild(flash); setTimeout(()=>flash.remove(), 2500);
+                    } else { card.classList.add('dramatic-glow'); }
                     
-                    document.getElementById('descLabel').innerText = ''; 
-                    document.getElementById('operatorLabel').innerText = '';
+                    document.getElementById('cardPrice').innerText = '--- ₽'; 
                     if (window.navigator && window.navigator.vibrate) navigator.vibrate(rarity.id==='mythic' ? [200, 100, 200, 100, 500] : [100, 50, 100]);
 
-                    spinSlotAnimation(
-                        document.getElementById('priceLabel'), 
-                        document.getElementById('euroLabel'),
-                        document.getElementById('simNumber'), 
-                        profitObj, 
-                        rarity.id === 'mythic',
-                        newSim.number, 
-                        rarity.color, 
-                        duration,
-                        thisGenId
-                    );
+                    spinSlotAnimation(document.getElementById('cardPrice'), document.getElementById('euroLabel'), document.getElementById('simNumber'), profitObj, rarity.id === 'mythic', newSim.number, '#fff', duration, thisGenId);
 
                     setTimeout(() => {
                         if (currentGenId !== thisGenId) return; 
-                        typeWriter(document.getElementById('descLabel'), newSim.desc, 30, thisGenId);
-                        document.getElementById('operatorLabel').innerText = newSim.operator;
-                        setTimeout(() => { 
-                            if (currentGenId !== thisGenId) return;
-                            card.classList.remove('dramatic-glow', 'mythic-glow'); 
-                        }, 1000);
+                        document.getElementById('cardOperator').innerText = newSim.operator;
+                        document.getElementById('cardRarity').innerText = rarity.name;
+                        document.getElementById('cardRarity').style.color = rarity.color;
+                        setTimeout(() => { if (currentGenId !== thisGenId) return; card.classList.remove('dramatic-glow', 'mythic-glow'); }, 1000);
                     }, duration);
                 } else {
-                    document.getElementById('descLabel').innerText = '';
-                    document.getElementById('operatorLabel').innerText = '';
-                    spinSlotAnimation(
-                        document.getElementById('priceLabel'), 
-                        document.getElementById('euroLabel'),
-                        document.getElementById('simNumber'), 
-                        profitObj, 
-                        rarity.id === 'mythic',
-                        newSim.number, 
-                        rarity.color, 
-                        400, 
-                        thisGenId
-                    );
+                    document.getElementById('cardPrice').innerText = '--- ₽';
+                    spinSlotAnimation(document.getElementById('cardPrice'), document.getElementById('euroLabel'), document.getElementById('simNumber'), profitObj, rarity.id === 'mythic', newSim.number, '#fff', 300, thisGenId);
                     
                     setTimeout(() => {
                         if (currentGenId !== thisGenId) return; 
-                        document.getElementById('descLabel').innerText = newSim.desc;
-                        document.getElementById('operatorLabel').innerText = newSim.operator;
+                        document.getElementById('cardOperator').innerText = newSim.operator;
+                        document.getElementById('cardRarity').innerText = rarity.name;
+                        document.getElementById('cardRarity').style.color = rarity.color;
                         if (window.navigator && window.navigator.vibrate) navigator.vibrate(10);
-                    }, 400);
+                    }, 300);
                 }
             } catch (e) {
                 console.error("Generator error", e);
-                isAnimating = false; 
-                showToast("Произошла ошибка при генерации", "error");
+                isAnimating = false; showToast("Произошла ошибка", "error");
             }
         }
 
@@ -1096,54 +1072,50 @@
 
             const isEq = state.equipped && state.equipped.id === id;
             let profitObj = getSellProfit(item);
-            
-            if (!item.comboLines) {
-                let evalData = evaluatePhoneNumber(item.number);
-                item.comboLines = evalData.comboLines;
-                item.score = evalData.score;
-                item.operator = evalData.operatorName;
-            }
 
             document.getElementById('modalRarity').innerText = item.rarity.name;
             document.getElementById('modalRarity').style.color = item.rarity.color;
             document.getElementById('modalNumber').innerText = item.number;
-            document.getElementById('modalNumber').style.color = item.rarity.color;
             
             document.getElementById('modalOperator').innerText = item.operator || "Федеральный оператор";
             document.getElementById('modalBeautyIndex').innerText = item.score + " pts";
             
             let comboBox = document.getElementById('modalComboLines');
             comboBox.innerHTML = '';
-            item.comboLines.forEach(line => {
-                comboBox.innerHTML += `
-                    <div class="combo-line">
-                        <div style="display:flex; justify-content:space-between;">
-                            <span class="combo-name">${line.name}</span>
-                            <span style="color:var(--accent);">+${line.points}</span>
+            if(item.comboLines) {
+                item.comboLines.forEach(line => {
+                    comboBox.innerHTML += `
+                        <div class="combo-line">
+                            <div style="display:flex; justify-content:space-between;">
+                                <span class="combo-name">${line.name}</span>
+                                <span style="color:var(--accent);">+${line.points}</span>
+                            </div>
+                            <div style="color:var(--text-muted); margin-top:2px;">${line.desc}</div>
                         </div>
-                        <div style="color:var(--text-muted); margin-top:2px;">${line.desc}</div>
-                    </div>
-                `;
-            });
+                    `;
+                });
+            }
             
-            document.getElementById('modalMultiplier').innerText = `Рыночный множитель: x${state.market.active && state.market.rarityId === item.rarity.id ? state.market.mult : 1.0}`;
+            let mMult = state.market.active && state.market.rarityId === item.rarity.id ? state.market.mult : 1.0;
+            document.getElementById('modalMultiplier').innerText = `Рыночный спрос: x${mMult}`;
+            document.getElementById('modalMultiplier').style.color = mMult > 1 ? "var(--success)" : "var(--text-muted)";
             
             document.getElementById('modalBasePrice').innerText = `${profitObj.fullRubPrice.toLocaleString()} ₽`;
             document.getElementById('modalComm').innerText = `${profitObj.commLost.toLocaleString()} ₽`;
             
             if (item.rarity.id === 'mythic') {
-                document.getElementById('modalFinalPrice').innerHTML = `+${profitObj.rub.toLocaleString()} ₽ <br> <span style="color:#81c784">+${profitObj.eur.toLocaleString()} €</span>`;
+                document.getElementById('modalFinalPrice').innerHTML = `+${profitObj.rub.toLocaleString()} ₽ <br> <span style="color:var(--success); font-size: 16px;">+${profitObj.eur.toLocaleString()} €</span>`;
             } else {
                 document.getElementById('modalFinalPrice').innerText = `+${profitObj.rub.toLocaleString()} ₽`;
             }
 
-            document.getElementById('modalSource').innerText = `Источник оценки: Локальная алгоритмическая модель (v25)`;
+            document.getElementById('modalSource').innerText = `Оценка: Локальная нейросеть (v26)`;
 
             const btnEq = document.getElementById('modalEquipBtn');
             btnEq.innerText = isEq ? 'СНЯТЬ НОМЕР' : 'НАДЕТЬ НОМЕР';
             
             const btnSafe = document.getElementById('modalSafeBtn');
-            btnSafe.innerText = item.locked ? '🔓 ДОСТАТЬ ИЗ СЕЙФА' : '🔒 ПОЛОЖИТЬ В СЕЙФ';
+            btnSafe.innerHTML = item.locked ? '🔓 ИЗ СЕЙФА' : '🔒 В СЕЙФ';
 
             const btnSell = document.getElementById('modalSellBtn');
             btnSell.disabled = item.locked || isEq;
@@ -1173,16 +1145,13 @@
             if(!currentModalItemId) return;
             const idx = state.collection.findIndex(i => i.id === currentModalItemId);
             const item = state.collection[idx];
-            
             if (item.locked || (state.equipped && state.equipped.id === currentModalItemId)) return;
             
             let profitObj = getSellProfit(item);
-            
             state.balance += profitObj.rub; state.stats.earned += profitObj.rub;
             if(profitObj.eur > 0) { state.euro += profitObj.eur; state.stats.earnedEuro += profitObj.eur; }
 
             state.collection.splice(idx, 1);
-            
             saveGame(); updateBalanceUI(); renderCollection(); closeModal();
             if(profitObj.eur > 0) showToast(`Продано: +${profitObj.rub.toLocaleString()} ₽ | +${profitObj.eur.toLocaleString()} €`, 'success');
             else showToast(`Продано: +${profitObj.rub.toLocaleString()} ₽`, 'success');
@@ -1191,7 +1160,6 @@
         function renderCollection() {
             const grid = document.getElementById('collectionGrid');
             grid.innerHTML = '';
-            
             let items = [...state.collection];
             const sortP = document.getElementById('sortPrice').value;
             items.sort((a, b) => {
@@ -1201,7 +1169,7 @@
             });
 
             if(items.length === 0) {
-                grid.innerHTML = '<div style="grid-column:1/-1; text-align:center; color:var(--text-muted); padding:20px;">Коллекция пуста</div>'; return;
+                grid.innerHTML = '<div style="grid-column:1/-1; text-align:center; color:var(--text-muted); padding:40px 20px; font-weight: bold;">📭 Сейф пуст</div>'; return;
             }
 
             items.forEach(item => {
@@ -1211,16 +1179,16 @@
                 const div = document.createElement('div');
                 div.className = 'card'; 
                 div.style.borderTopColor = item.rarity.color;
-                if(isEq) div.style.boxShadow = `0 0 15px ${item.rarity.color} inset`;
+                if(isEq) div.style.boxShadow = `0 0 20px ${item.rarity.color} inset`;
                 
-                let pText = `+${profitObj.rub.toLocaleString()} ₽`;
-                if(item.rarity.id === 'mythic') pText += `<br><span style="color:#81c784">+${profitObj.eur.toLocaleString()} €</span>`;
+                let pText = `${profitObj.rub.toLocaleString()} ₽`;
+                if(item.rarity.id === 'mythic') pText += `<br><span style="color:var(--success)">+${profitObj.eur.toLocaleString()} €</span>`;
 
                 div.innerHTML = `
                     ${item.locked ? '<div class="lock-icon locked">🔒</div>' : ''}
-                    <div class="card-num" style="color: ${item.rarity.color};">${item.number}</div>
-                    <div style="font-size: 10px; text-transform: uppercase; margin-bottom:5px; color:${item.rarity.color}">${item.rarity.name}</div>
-                    <div class="card-price" style="line-height: 1.4;">${pText}</div>
+                    <div class="card-num" style="color: #fff;">${item.number}</div>
+                    <div style="font-size: 10px; font-weight: 800; text-transform: uppercase; margin-bottom:5px; letter-spacing: 1px; color:${item.rarity.color}">${item.rarity.name}</div>
+                    <div class="card-price">${pText}</div>
                 `;
                 div.onclick = () => openModal(item.id);
                 grid.appendChild(div);
@@ -1254,9 +1222,7 @@
                 let isEq = state.equipped && state.equipped.id === item.id;
                 if (!item.locked && !isEq && conditionFn(item)) {
                     let profitObj = getSellProfit(item);
-                    totalEarnedRub += profitObj.rub;
-                    totalEarnedEur += profitObj.eur;
-                    count++;
+                    totalEarnedRub += profitObj.rub; totalEarnedEur += profitObj.eur; count++;
                 } else { toKeep.push(item); }
             });
             if (count > 0) {
@@ -1277,7 +1243,7 @@
                 if (state.euro >= cost && lvl < upg.maxLevel) {
                     state.euro -= cost; state.upgrades[upgKey]++;
                     updateBalanceUI(); renderUpgrades(); renderProfile(); saveGame();
-                    showToast('Автоселлер разблокирован!', 'success');
+                    showToast('Разблокировано!', 'success');
                 } else { showToast('Недостаточно Евро (€)', 'error'); }
                 return;
             }
@@ -1285,7 +1251,7 @@
             if (state.balance >= cost && lvl < upg.maxLevel) {
                 state.balance -= cost; state.upgrades[upgKey]++;
                 updateBalanceUI(); renderUpgrades(); saveGame();
-                showToast('Апгрейд куплен!', 'success');
+                showToast('Куплено!', 'success');
             } else { showToast('Мало денег или макс. уровень', 'error'); }
         }
 
@@ -1299,20 +1265,17 @@
                 let cost = Math.floor(upg.baseCost * Math.pow(upg.mult, lvl));
                 let isMax = lvl >= upg.maxLevel;
                 let currSymbol = upg.curr === 'eur' ? '€' : '₽';
-                
                 let descText = upg.desc;
-                if (key === 'capacity' && !isMax) {
-                    descText = `Вместимость: ${CAPACITY_LEVELS[lvl]} ➔ ${CAPACITY_LEVELS[lvl+1]} мест`;
-                }
+                if (key === 'capacity' && !isMax) descText = `Вместимость: ${CAPACITY_LEVELS[lvl]} ➔ ${CAPACITY_LEVELS[lvl+1]} мест`;
 
                 list.innerHTML += `
                     <div class="upgrade-card">
                         <div>
-                            <div style="font-weight:bold; margin-bottom:5px; color:${upg.curr === 'eur' ? '#81c784' : '#fff'};">${upg.name}</div>
-                            <div style="font-size:12px; color:var(--text-muted);">${descText}</div>
-                            <div style="font-size:12px; color:var(--accent); margin-top:5px;">Уровень: ${lvl}/${upg.maxLevel}</div>
+                            <div style="font-weight:800; font-size:14px; margin-bottom:5px; color:${upg.curr === 'eur' ? 'var(--success)' : '#fff'};">${upg.name}</div>
+                            <div style="font-size:11px; color:var(--text-muted);">${descText}</div>
+                            <div style="font-size:10px; text-transform: uppercase; font-weight: bold; color:var(--accent); margin-top:8px;">Уровень: ${lvl}/${upg.maxLevel}</div>
                         </div>
-                        <button class="btn-upg" style="${upg.curr === 'eur' ? 'background:#81c784; box-shadow: 0 4px 15px rgba(129,199,132,0.3);' : 'box-shadow: 0 4px 15px rgba(102,252,241,0.3);'}" onclick="buyUpgrade('${key}')" ${isMax || (upg.curr==='rub'?state.balance:state.euro) < cost ? 'disabled' : ''}>
+                        <button class="btn-upg" style="${upg.curr === 'eur' ? 'background:var(--success); box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);' : 'box-shadow: 0 4px 15px rgba(102,252,241,0.3);'}" onclick="buyUpgrade('${key}')" ${isMax || (upg.curr==='rub'?state.balance:state.euro) < cost ? 'disabled' : ''}>
                             ${isMax ? 'МАКС' : cost.toLocaleString() + ' ' + currSymbol}
                         </button>
                     </div>
@@ -1324,75 +1287,46 @@
             let lvl = state.upgrades.autoseller;
             if (lvl >= 5) return;
             let config = AUTOSELLER_CONFIG[lvl+1];
-            let cost = config.cost;
-            let isEur = config.isEur;
             
-            if (isEur) {
-                if (state.euro >= cost) { state.euro -= cost; } else { showToast('Недостаточно Евро (€)', 'error'); return; }
+            if (config.isEur) {
+                if (state.euro >= config.cost) state.euro -= config.cost; 
+                else { showToast('Недостаточно Евро (€)', 'error'); return; }
             } else {
-                if (state.balance >= cost) { state.balance -= cost; } else { showToast('Недостаточно рублей (₽)', 'error'); return; }
+                if (state.balance >= config.cost) state.balance -= config.cost; 
+                else { showToast('Недостаточно рублей (₽)', 'error'); return; }
             }
             
-            state.upgrades.autoseller++;
-            saveGame(); updateBalanceUI(); renderProfile();
-            showToast(`Автоселлер улучшен до ур. ${lvl+1}!`, 'success');
+            state.upgrades.autoseller++; saveGame(); updateBalanceUI(); renderProfile();
+            showToast(`Улучшено до ур. ${lvl+1}!`, 'success');
         }
 
         function renderProfile() {
             const profEq = document.getElementById('profEquipped');
-            if (state.equipped) {
-                profEq.innerText = state.equipped.number; profEq.style.color = state.equipped.rarity.color;
-            } else {
-                profEq.innerText = "Нет номера"; profEq.style.color = "var(--text-main)";
-            }
+            if (state.equipped) { profEq.innerText = state.equipped.number; profEq.style.color = state.equipped.rarity.color; } 
+            else { profEq.innerText = "Нет номера"; profEq.style.color = "var(--text-muted)"; }
+            
             document.getElementById('profTotalGens').innerText = state.stats.generated;
             document.getElementById('profTotalEarned').innerText = state.stats.earned.toLocaleString('ru-RU') + ' ₽';
             document.getElementById('profTotalEuro').innerText = state.stats.earnedEuro.toLocaleString('ru-RU') + ' €';
-            
-            document.getElementById('stat-common').innerText = state.stats.rarities.common || 0;
-            document.getElementById('stat-uncommon').innerText = state.stats.rarities.uncommon || 0;
-            document.getElementById('stat-rare').innerText = state.stats.rarities.rare || 0;
-            document.getElementById('stat-epic').innerText = state.stats.rarities.epic || 0;
-            document.getElementById('stat-legendary').innerText = state.stats.rarities.legendary || 0;
-            document.getElementById('stat-mythic').innerText = state.stats.rarities.mythic || 0;
-
-            document.getElementById('stat-god').innerText = state.stats.patterns.god || 0;
-            document.getElementById('stat-legend').innerText = state.stats.patterns.legend || 0;
-            document.getElementById('stat-diamond').innerText = state.stats.patterns.diamond || 0;
-            document.getElementById('stat-platinum').innerText = state.stats.patterns.platinum || 0;
-            document.getElementById('stat-gold').innerText = state.stats.patterns.gold || 0;
-            document.getElementById('stat-silver').innerText = state.stats.patterns.silver || 0;
-            document.getElementById('stat-rhythm').innerText = state.stats.patterns.rhythm || 0;
-            document.getElementById('stat-butterfly').innerText = state.stats.patterns.butterfly || 0;
-            document.getElementById('stat-zeros').innerText = state.stats.patterns.zeros || 0;
 
             let asPanel = document.getElementById('autosellerProfilePanel');
             if (state.upgrades.autoseller > 0) {
                 asPanel.style.display = 'block';
-                let lvl = state.upgrades.autoseller;
-                let config = AUTOSELLER_CONFIG[lvl];
-                document.getElementById('asStatus').innerHTML = `Уровень: <span style="color:#fff; font-weight:bold;">${lvl} / 5</span><br>Продает: <span style="color:#fff;">${config.name}</span><br>Срабатывает автоматически при 100% заполнении сейфа.`;
+                let lvl = state.upgrades.autoseller; let config = AUTOSELLER_CONFIG[lvl];
+                document.getElementById('asStatus').innerHTML = `Уровень: <span style="color:#fff; font-weight:bold;">${lvl} / 5</span><br>Продает: <span style="color:#fff;">${config.name}</span><br><span style="font-size: 11px; opacity: 0.7;">Срабатывает при заполнении сейфа</span>`;
                 
                 let btn = document.getElementById('asUpgBtn');
                 if (lvl < 5) {
                     let nextConfig = AUTOSELLER_CONFIG[lvl+1];
-                    let currSymbol = nextConfig.isEur ? '€' : '₽';
-                    btn.innerText = `Улучшить (${nextConfig.cost.toLocaleString()} ${currSymbol})`;
+                    btn.innerText = `Улучшить (${nextConfig.cost.toLocaleString()} ${nextConfig.isEur ? '€' : '₽'})`;
                     btn.style.display = 'block';
                     btn.style.opacity = (nextConfig.isEur ? state.euro >= nextConfig.cost : state.balance >= nextConfig.cost) ? '1' : '0.5';
-                } else {
-                    btn.style.display = 'none';
-                }
-            } else {
-                if(asPanel) asPanel.style.display = 'none';
-            }
+                } else { btn.style.display = 'none'; }
+            } else { asPanel.style.display = 'none'; }
         }
 
-        updateBalanceUI();
-        initMassSellTags();
-        document.getElementById('marketTicker').innerHTML = state.market.active 
-            ? `⚖️ ТЕКУЩИЙ РЫНОК (x${state.market.mult}) | Комиссия: 15%`
-            : `⚖️ Рынок стабилен | Комиссия: 15%`;
+        updateBalanceUI(); initMassSellTags();
+        document.getElementById('marketTicker').innerHTML = state.market.active ? `⚖️ ТЕКУЩИЙ РЫНОК (x${state.market.mult}) | Комиссия: 15%` : `⚖️ Рынок стабилен | Комиссия: 15%`;
     </script>
 </body>
 </html>
