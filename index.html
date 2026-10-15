@@ -256,6 +256,15 @@
         
         .modal-content::-webkit-scrollbar { width: 4px; }
         .modal-content::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 4px; }
+    
+        /* Подсветка рисуется отдельным слоем позади цифры (::before) и не влияет на положение текста */
+        #modalNumber { isolation: isolate; }
+        #modalNumber .nd { position: relative; }
+        #modalNumber .nd::before { content: ''; position: absolute; left: -2px; right: -2px; top: 10%; bottom: 6%; border-radius: 6px; z-index: -1; background-color: transparent; transition: background-color .15s ease; }
+        #modalNumber .nd.hl-d { color: var(--text-bright); }
+        #modalNumber .nd.hl-d::before { background-color: rgba(255,255,255,0.22); background-color: color-mix(in srgb, var(--accent) 45%, transparent); }
+        #modalComboLines .combo-line { transition: background-color .15s ease; border-radius: 8px; }
+        #modalComboLines .combo-line.combo-on { background-color: rgba(255,255,255,0.08); }
     </style>
 </head>
 <body>
@@ -362,6 +371,7 @@
                     </div>
                 </div>
                 <div class="click-hint">Нажмите на карту для генерации</div>
+                <div id="luckMini" onclick="switchTab('tab-upg', document.querySelector('[onclick*=tab-upg]'))" style="text-align:center;font-size:12px;font-weight:700;margin:10px 0;color:var(--text-muted);cursor:pointer;"></div>
                 
                 <div class="result-panel" id="resultPanel">
                     <div id="profitLabel">+0 ₽</div>
@@ -393,6 +403,14 @@
         <!-- Вкладка БИЗНЕС -->
         <div id="tab-upg" class="tab-content">
             <div style="margin-bottom: 20px; color: var(--text-muted); font-size: 12px; line-height: 1.6; text-align: center; padding: 0 20px;">Инвестируйте в серверы и алгоритмы для повышения вероятности элитных номеров.</div>
+            <div class="glass-panel" id="luckPanel">
+                <h3 style="margin-top:0;font-size:14px;text-transform:uppercase;letter-spacing:1px;color:#fff;">🍀 Удача</h3>
+                <div id="luckStatus" style="font-size:13px;line-height:1.7;color:var(--text-main);margin-bottom:12px;"></div>
+                <div id="luckReady"></div>
+                <div style="font-size:11px;color:var(--text-muted);margin:14px 0 8px;text-transform:uppercase;letter-spacing:1px;">Магазин (Telegram Stars)</div>
+                <div id="luckShop"></div>
+                <div style="font-size:10px;color:var(--text-muted);margin-top:10px;line-height:1.5;">Удача xL = игра делает L попыток и оставляет лучший номер. Итог: L = 1 + (донат−1) + (бонус за прокруты−1)·0.75, максимум x25.</div>
+            </div>
             <div id="upgradesList"></div>
         </div>
 
@@ -407,6 +425,11 @@
             <div class="glass-panel" style="text-align: center; padding: 20px;">
                 <div style="font-size: 14px; font-weight: bold; color: #fff; margin-bottom: 5px;">☁️ Telegram Cloud</div>
                 <div id="cloudSyncStatus" style="font-size: 12px; font-weight: 600; color: var(--text-muted);">Проверка статуса...</div>
+            </div>
+
+            <div class="glass-panel">
+                <h3 style="margin-top:0;font-size:14px;text-transform:uppercase;letter-spacing:1px;color:#fff;">🎨 Оформление</h3>
+                <div id="themeList" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;"></div>
             </div>
 
             <div class="glass-panel" id="autosellerProfilePanel" style="display: none; border-color: rgba(16, 185, 129, 0.3);">
@@ -504,7 +527,7 @@
 
         const CAPACITY_LEVELS = [20, 100, 250, 500, 750, 1000];
         const AUTOSELLER_CONFIG = {
-            1: { cost: 25000, sells: ['common'], name: 'Обычные' },
+            1: { cost: 150000, sells: ['common'], name: 'Обычные' },
             2: { cost: 150000, sells: ['common', 'uncommon'], name: 'Обычные, Необычные' },
             3: { cost: 750000, sells: ['common', 'uncommon', 'rare'], name: 'Вплоть до Редких' },
             4: { cost: 2, sells: ['common', 'uncommon', 'rare', 'epic'], name: 'Вплоть до Эпических', isEur: true },
@@ -513,8 +536,9 @@
 
         const UPGRADES = {
             capacity: { id: 'capacity', name: 'Дата-центр', desc: 'Увеличивает количество слотов в сейфе', maxLevel: 5, baseCost: 10000, mult: 4, curr: 'rub' },
-            luck: { id: 'luck', name: 'Связи дилера', desc: 'Алгоритм ищет лучшие номера при генерации', maxLevel: 5, baseCost: 50000, mult: 4, curr: 'rub' },
-            autoseller: { id: 'autoseller', name: 'Автоселлер', desc: 'Автоматическая продажа мусора из сейфа', maxLevel: 1, baseCost: 25000, mult: 1, curr: 'rub' }
+            luck: { id: 'luck', name: 'Связи дилера', desc: 'Постоянно +1 доп. номер на выбор за уровень (берётся лучший)', maxLevel: 5, baseCost: 50000, mult: 4, curr: 'rub' },
+            speed: { id: 'speed', name: 'Быстрая генерация', desc: 'Сокращает время одной генерации', maxLevel: 5, baseCost: 5000, mult: 3, curr: 'rub' },
+            autoseller: { id: 'autoseller', name: 'Автоселлер', desc: 'Автоматическая продажа мусора из сейфа', maxLevel: 1, baseCost: 150000, mult: 1, curr: 'rub' }
         };
 
         // --- ОБЛАКО TELEGRAM ---
@@ -558,8 +582,9 @@
             stats: { generated: 0, earned: 0, earnedEuro: 0, rarities: { common: 0, uncommon: 0, rare: 0, epic: 0, legendary: 0, mythic: 0 },
             patterns: { god: 0, legend: 0, diamond: 0, platinum: 0, gold: 0, silver: 0, rhythm: 0, butterfly: 0, twopairs: 0, zeros: 0 } },
             upgrades: { capacity: 0, luck: 0, autoseller: 0 },
+            luck: { spins: 0, ready: [], active: null, donat: null },
             market: { active: false, rarityId: null, mult: 1 },
-            settings: { color: '#00f0ff', animEpic: true, animLegendary: true, animMythic: true }
+            settings: { color: '#00f0ff', theme: 'classic', animEpic: true, animLegendary: true, animMythic: true }
         };
 
         let state;
@@ -792,7 +817,7 @@
         function getGenCost() { return 1000; } 
         function getCommissionPercent() { return 15; } 
         
-        function updateBalanceUI() {
+        function updateBalanceUI() { try { renderLuck(); } catch(e) {}
             document.getElementById('headerBalance').innerText = state.balance.toLocaleString('ru-RU');
             if (state.euro > 0) {
                 document.getElementById('headerEuroContainer').style.display = 'block';
@@ -922,6 +947,129 @@
             if (lastGeneratedSim && !isAnimating) openModal(lastGeneratedSim.id);
         }
 
+        // --- ТЕМЫ ИНТЕРФЕЙСА ---
+        const THEMES = {
+            classic:  { name: 'Классика',      vars: { '--bg-dark':'#050507','--bg-light':'#12141d','--glass-bg':'rgba(20,22,30,0.6)','--glass-border':'rgba(255,255,255,0.06)','--accent':'#00f0ff' } },
+            gold:     { name: 'Чёрно-золото',  vars: { '--bg-dark':'#080604','--bg-light':'#1a1408','--glass-bg':'rgba(30,22,8,0.65)','--glass-border':'rgba(245,190,60,0.25)','--accent':'#f5be3c' } },
+            neon:     { name: 'Неон',          vars: { '--bg-dark':'#07030f','--bg-light':'#1a0a33','--glass-bg':'rgba(40,12,70,0.55)','--glass-border':'rgba(255,60,220,0.3)','--accent':'#ff3cdc' } },
+            cyber:    { name: 'Киберпанк',     vars: { '--bg-dark':'#020a06','--bg-light':'#07201a','--glass-bg':'rgba(6,34,26,0.6)','--glass-border':'rgba(57,255,140,0.25)','--accent':'#39ff8c' } },
+            minimal:  { name: 'Минимал',       vars: { '--bg-dark':'#0b0b0c','--bg-light':'#17181a','--glass-bg':'rgba(255,255,255,0.04)','--glass-border':'rgba(255,255,255,0.12)','--accent':'#cbd5e1' } }
+        };
+        function applyTheme(key) {
+            const t = THEMES[key] || THEMES.classic;
+            for (const k in t.vars) document.documentElement.style.setProperty(k, t.vars[k]);
+            document.body.style.background = t.vars['--bg-dark'];
+            state.settings.theme = key; state.settings.color = t.vars['--accent'];
+            renderThemes();
+        }
+        function chooseTheme(key) { applyTheme(key); saveGame(); }
+        function renderThemes() {
+            const box = document.getElementById('themeList'); if (!box) return;
+            box.innerHTML = Object.keys(THEMES).map(k => {
+                const t = THEMES[k], on = (state.settings.theme || 'classic') === k;
+                return `<button onclick="chooseTheme('${k}')" style="padding:12px 8px;border-radius:12px;font-weight:700;font-size:12px;cursor:pointer;color:#fff;background:${t.vars['--bg-light']};border:2px solid ${on ? t.vars['--accent'] : t.vars['--glass-border']};box-shadow:${on ? '0 0 14px ' + t.vars['--accent'] : 'none'};">${t.name}</button>`;
+            }).join('');
+        }
+
+        // --- УДАЧА ---
+        // Бесплатные бонусы за прокруты: проверяются от старшего к младшему.
+        const LUCK_TIERS = [
+            { every: 1000, mult: 20, spins: 3,  reset: true },
+            { every: 500,  mult: 5,  spins: 5 },
+            { every: 100,  mult: 2,  spins: 10 }
+        ];
+        const MAX_LUCK = 25;
+        const ANIM_LEVELS = [2000, 1700, 1400, 1100, 950, 800]; // мс на одну генерацию по уровням апгрейда
+        function getAnimMs() { return ANIM_LEVELS[Math.min((state.upgrades && state.upgrades.speed) || 0, ANIM_LEVELS.length - 1)]; }
+        const STARS_SHOP = [
+            { id: 'luck2_1h',  label: 'Удача x2 на 1 час',  mult: 2, ms: 3600000 },
+            { id: 'luck2_24h', label: 'Удача x2 на 24 часа', mult: 2, ms: 86400000 },
+            { id: 'luck5_1h',  label: 'Удача x5 на 1 час',  mult: 5, ms: 3600000 }
+        ];
+        const PAYMENT_BACKEND_URL = ''; // ← сюда адрес сервера бота, который создаёт Stars-инвойсы и подтверждает оплату
+
+        function ensureLuck() {
+            if (!state.luck) state.luck = { spins: 0, ready: [], active: null, donat: null };
+            if (!Array.isArray(state.luck.ready)) state.luck.ready = [];
+            if (state.luck.spins == null) state.luck.spins = 0;
+            if (state.luck.donat && state.luck.donat.until <= Date.now()) state.luck.donat = null;
+            return state.luck;
+        }
+        function autoUnlocked() {
+            const pats = Object.values((state.stats && state.stats.patterns) || {}).filter(v => v > 0).length;
+            const g = state.stats.generated || 0, e = state.stats.earned || 0;
+            const lines = [
+                `${g >= 1000 ? '✅' : '❌'} ${Math.min(g,1000)}/1000 генераций`,
+                `${e >= 100000 ? '✅' : '❌'} ${Math.min(e,100000).toLocaleString('ru-RU')}/100 000 ₽ заработано`,
+                `${pats >= 5 ? '✅' : '❌'} ${Math.min(pats,5)}/5 разных паттернов`
+            ];
+            return { ok: g >= 1000 && e >= 100000 && pats >= 5, lines };
+        }
+        function currentLuck() {
+            const l = ensureLuck();
+            const D = l.donat ? l.donat.mult : 1;
+            const F = (l.active && l.active.left > 0) ? l.active.mult : 1;
+            const L = Math.min(MAX_LUCK, 1 + (D - 1) + (F - 1) * 0.75);
+            return { L, D, F };
+        }
+        function countSpinAndConsumeLuck() {
+            const l = ensureLuck();
+            if (l.active) { l.active.left--; if (l.active.left <= 0) { l.active = null; showToast('Бонус удачи закончился', 'info'); } }
+            l.spins++;
+            for (const t of LUCK_TIERS) {
+                if (l.spins % t.every === 0) {
+                    l.ready.push({ mult: t.mult, spins: t.spins });
+                    showToast(`🍀 Цель достигнута: удача x${t.mult} на ${t.spins} прокр.`, 'success');
+                    if (t.reset) l.spins = 0;
+                    break;
+                }
+            }
+            // автозапуск: если ничего не активно, берём следующий бонус из очереди
+            if (!l.active && l.ready.length) {
+                const b = l.ready.shift(); l.active = { mult: b.mult, left: b.spins };
+                showToast(`Удача x${b.mult} активна на ${b.spins} прокр.`, 'success');
+            }
+        }
+        function activateLuck(i) {
+            const l = ensureLuck();
+            if (l.active) { showToast('Сначала дождитесь конца текущего бонуса', 'error'); return; }
+            const b = l.ready[i]; if (!b) return;
+            l.ready.splice(i, 1); l.active = { mult: b.mult, left: b.spins };
+            saveGame(); renderLuck(); showToast(`Удача x${b.mult} активна на ${b.spins} прокр.`, 'success');
+        }
+        // Вызывать ТОЛЬКО после подтверждения оплаты сервером.
+        function grantDonatBoost(mult, ms) {
+            const l = ensureLuck(), now = Date.now();
+            if (l.donat && l.donat.mult === mult) l.donat.until += ms;
+            else l.donat = { mult, until: now + ms };
+            saveGame(); renderLuck();
+        }
+        function buyStars(id) {
+            if (!PAYMENT_BACKEND_URL) { showToast('Оплата Stars ещё не подключена к серверу бота', 'info'); return; }
+            // Здесь: запросить у сервера ссылку на инвойс, Telegram.WebApp.openInvoice(link, cb),
+            // а буст выдавать только по подтверждению сервера (grantDonatBoost).
+        }
+        function fmtLeft(ms) { const m = Math.ceil(ms / 60000); return m >= 60 ? Math.floor(m / 60) + ' ч ' + (m % 60) + ' мин' : m + ' мин'; }
+        function renderLuck() {
+            const l = ensureLuck(), c = currentLuck();
+            const nextT = [...LUCK_TIERS].map(t => t.every - (l.spins % t.every)).sort((a, b) => a - b)[0];
+            const mini = document.getElementById('luckMini');
+            if (mini) mini.innerHTML = `🍀 Удача <span style="color:var(--accent)">x${+c.L.toFixed(2)}</span> · прокрутов: ${l.spins} · до бонуса ${nextT}` + (l.ready.length ? ` · <span style="color:var(--success)">готово: ${l.ready.length}</span>` : '');
+            const st = document.getElementById('luckStatus'); if (!st) return;
+            st.innerHTML = `Итоговая удача: <b style="color:var(--accent)">x${+c.L.toFixed(2)}</b><br>` +
+                (l.donat ? `Донат x${l.donat.mult}: осталось ${fmtLeft(l.donat.until - Date.now())}<br>` : '') +
+                (l.active ? `Бонус за прокруты x${l.active.mult}: осталось ${l.active.left} прокр.<br>` : '') +
+                `Прокрутов в цикле: ${l.spins}/1000 (до бонуса: ${nextT})`;
+            document.getElementById('luckReady').innerHTML = l.ready.map((b, i) =>
+                `<button class="btn-full primary" style="font-size:12px;padding:10px;" onclick="activateLuck(${i})">Подготовленная удача x${b.mult} на ${b.spins} прокр. — активировать</button>`).join('');
+            document.getElementById('luckShop').innerHTML = STARS_SHOP.map(p =>
+                `<button class="btn-full" style="font-size:12px;padding:10px;" onclick="buyStars('${p.id}')">⭐ ${p.label} — цена скоро</button>`).join('');
+        }
+        setInterval(() => { try { if (ensureLuck().donat || true) renderLuck(); } catch(e) {} }, 15000);
+        if (state.settings.theme) applyTheme(state.settings.theme); else renderThemes();
+        ensureLuck();
+        if (state.upgrades.speed == null) state.upgrades.speed = 0;
+
         function generateSim() {
             if (isAnimating) return; 
             
@@ -980,7 +1128,7 @@
                 if (lastGeneratedSim) spawnSkippedAnimation(lastGeneratedSim);
 
                 let luckLvl = state.upgrades.luck || 0;
-                let rollsCount = 1 + luckLvl; 
+                let lk = currentLuck(); let rollsCount = Math.max(1, Math.round(lk.L)) + luckLvl; 
                 let bestEval = null;
 
                 for(let i=0; i<rollsCount; i++) {
@@ -1021,7 +1169,7 @@
 
                 let profitObj = getSellProfit(newSim);
                 state.collection.unshift(newSim); 
-                lastGeneratedSim = newSim; 
+                lastGeneratedSim = newSim; countSpinAndConsumeLuck(); 
 
                 if (card) card.style.background = rarity.bg;
                 
@@ -1034,7 +1182,7 @@
 
                 if (shouldAnimate) {
                     isAnimating = true; 
-                    let duration = (rarity.id === 'mythic') ? 2500 : 1500; 
+                    let duration = Math.max(getAnimMs(), (rarity.id === 'mythic') ? 2000 : 1200); 
                     
                     if (rarity.id === 'mythic') {
                         if (card) card.classList.add('mythic-glow');
@@ -1058,7 +1206,8 @@
                     }, duration);
                 } else {
                     if (document.getElementById('cardPrice')) document.getElementById('cardPrice').innerText = '--- ₽';
-                    spinSlotAnimation(document.getElementById('cardPrice'), document.getElementById('euroLabel'), document.getElementById('simNumber'), profitObj, rarity.id === 'mythic', newSim.number, '#fff', 300, thisGenId);
+                    isAnimating = true;
+                    spinSlotAnimation(document.getElementById('cardPrice'), document.getElementById('euroLabel'), document.getElementById('simNumber'), profitObj, rarity.id === 'mythic', newSim.number, '#fff', getAnimMs(), thisGenId);
                     
                     setTimeout(() => {
                         if (currentGenId !== thisGenId) return; 
@@ -1068,12 +1217,76 @@
                             document.getElementById('cardRarity').style.color = rarity.color;
                         }
                         if (window.navigator && window.navigator.vibrate) navigator.vibrate(10);
-                    }, 300);
+                    }, getAnimMs());
                 }
             } catch (e) {
                 console.error("Generator error", e);
                 isAnimating = false; showToast("Произошла ошибка", "error");
             }
+        }
+
+        // Только отображение: внутренние баллы остаются прежними, на экране они показываются как множитель
+        function fmtX(v) { return String(+Number(v).toFixed(2)); }
+
+        // --- ПОДСВЕТКА КОМБИНАЦИЙ В НОМЕРЕ (только отображение) ---
+        // Возвращает диапазоны [от, до) по 10 цифрам номера (3 цифры кода + 7 цифр абонента)
+        function getPatternRanges(numberStr, name) {
+            const d = (numberStr || '').replace(/\D/g, '').slice(-10);
+            if (d.length < 10) return [];
+            const tail = d.slice(3);
+            const out = [];
+            const one = (re, base) => { const m = re.exec(base === 0 ? d : tail); if (m) { const o = base === 0 ? 0 : 3; out.push([o + m.index, o + m.index + m[0].length]); } return m; };
+            if (name.startsWith('Код:')) return [[0, 3]];
+            if (name.includes('Бриллиант') || name.includes('Платина') || name.includes('Золотой') || name.includes('Серебряный') || name.includes('Бронзовый')) {
+                const n = name.includes('Бриллиант') ? 7 : name.includes('Платина') ? 6 : name.includes('Золотой') ? 5 : name.includes('Серебряный') ? 4 : 3;
+                one(new RegExp('(.)\\1{' + (n - 1) + '}'), 1); return out;
+            }
+            if (name.includes('Идеальная лесенка')) { one(/0123456|1234567|2345678|3456789|9876543|8765432|7654321|6543210/, 1); return out; }
+            if (name.includes('Длинная лесенка')) { one(/012345|123456|234567|345678|456789|987654|876543|765432|654321|543210/, 1); return out; }
+            if (name.includes('Средняя лесенка')) { one(/01234|12345|23456|34567|45678|56789|98765|87654|76543|65432|54321|43210/, 1); return out; }
+            if (name.includes('Малая лесенка')) { one(/0123|1234|2345|3456|4567|5678|6789|9876|8765|7654|6543|5432|4321|3210/, 1); return out; }
+            if (name.includes('Микро-лесенка')) { one(/012|123|234|345|456|567|678|789|987|876|765|654|543|432|321|210/, 1); return out; }
+            if (name.includes('палиндром')) return [[3, 10]];
+            if (name.includes('ABCABC')) { one(/(\d{3})\1/, 1); return out; }
+            if (name.includes('(ABAB)')) { one(/(.)(?!\1)(.)\1\2/, 1); return out; }
+            if (name.includes('(AABB)')) { one(/(.)\1(?!\1)(.)\2/, 1); return out; }
+            if (name.includes('(ABBA)')) { one(/(.)(?!\1)(.)\2\1/, 1); return out; }
+            if (name.includes('Эхо-блок')) {
+                const m = /(\d{2}).*\1/.exec(tail);
+                if (m) { const j = tail.lastIndexOf(m[1]); out.push([3 + m.index, 5 + m.index], [3 + j, 5 + j]); }
+                return out;
+            }
+            if (name.includes('(ABA)')) { one(/(.)(?!\1)(.)\1/, 1); return out; }
+            if (name.includes('пар')) { let m; const re = /(.)\1/g; while ((m = re.exec(d))) out.push([m.index, m.index + 2]); return out; }
+            if (name.includes('Мега-тысячник')) return [[6, 10]];
+            if (name.includes('Тысячник')) return [[7, 10]];
+            if (name.includes('Инь и Ян')) { let m; const re = /69/g; while ((m = re.exec(tail))) out.push([3 + m.index, 5 + m.index]); return out; }
+            return out;
+        }
+        let _hlLock = -1, _hlItem = null;
+        // Номер строится один раз (каждая цифра — свой span), подсветка — только смена класса, без перерисовки и сдвигов
+        function paintModalNumber(numberStr) {
+            const el = document.getElementById('modalNumber'); if (!el) return;
+            const total = (numberStr.match(/\d/g) || []).length; let di = 0, html = '';
+            for (const ch of numberStr) {
+                if (/\d/.test(ch)) { html += `<span class="nd" data-i="${di - (total - 10)}">${ch}</span>`; di++; }
+                else html += ch;
+            }
+            el.innerHTML = html;
+        }
+        function setNumberHighlight(ranges) {
+            document.querySelectorAll('#modalNumber .nd').forEach(sp => {
+                const idx = +sp.dataset.i;
+                sp.classList.toggle('hl-d', !!(ranges && ranges.some(r => idx >= r[0] && idx < r[1])));
+            });
+        }
+        function hlCombo(i, click) {
+            if (!_hlItem) return;
+            if (click) _hlLock = (_hlLock === i) ? -1 : i;
+            const show = click ? _hlLock : (i === -1 ? _hlLock : i);
+            const line = show >= 0 && _hlItem.comboLines ? _hlItem.comboLines[show] : null;
+            setNumberHighlight(line ? getPatternRanges(_hlItem.number, line.name) : null);
+            document.querySelectorAll('#modalComboLines .combo-line').forEach((el, k) => el.classList.toggle('combo-on', k === show));
         }
 
         // --- МОДАЛЬНОЕ ОКНО ---
@@ -1087,20 +1300,20 @@
 
             document.getElementById('modalRarity').innerText = item.rarity.name;
             document.getElementById('modalRarity').style.color = item.rarity.color;
-            document.getElementById('modalNumber').innerText = item.number;
+            _hlItem = item; _hlLock = -1; paintModalNumber(item.number);
             
             document.getElementById('modalOperator').innerText = item.operator || "Федеральный оператор";
-            document.getElementById('modalBeautyIndex').innerText = item.score + " pts";
+            document.getElementById('modalBeautyIndex').innerText = "x" + fmtX(1 + item.score / 100);
             
             let comboBox = document.getElementById('modalComboLines');
-            comboBox.innerHTML = '';
+            comboBox.innerHTML = '<div style="font-size:10px;color:var(--text-muted);margin-bottom:8px;">Нажмите на комбинацию — она подсветится в номере</div>';
             if(item.comboLines) {
-                item.comboLines.forEach(line => {
+                item.comboLines.forEach((line, i) => {
                     comboBox.innerHTML += `
-                        <div class="combo-line">
+                        <div class="combo-line" style="cursor:pointer;" onmouseenter="hlCombo(${i})" onclick="hlCombo(${i}, true)">
                             <div style="display:flex; justify-content:space-between;">
                                 <span class="combo-name">${line.name}</span>
-                                <span style="color:var(--accent);">+${line.points}</span>
+                                <span style="color:var(--accent);">+x${fmtX(line.points / 100)}</span>
                             </div>
                             <div style="color:var(--text-muted); margin-top:2px;">${line.desc}</div>
                         </div>
@@ -1108,6 +1321,7 @@
                 });
             }
             
+            comboBox.onmouseleave = () => hlCombo(-1);
             let mMult = state.market.active && state.market.rarityId === item.rarity.id ? state.market.mult : 1.0;
             document.getElementById('modalMultiplier').innerText = `Рыночный спрос: x${mMult}`;
             document.getElementById('modalMultiplier').style.color = mMult > 1 ? "var(--success)" : "var(--text-muted)";
@@ -1248,6 +1462,8 @@
         }
 
         function buyUpgrade(upgKey) {
+            if (state.upgrades[upgKey] == null) state.upgrades[upgKey] = 0;
+            if (upgKey === 'autoseller' && !autoUnlocked().ok) { showToast('Автоселлер ещё закрыт: выполните условия', 'error'); return; }
             let upg = UPGRADES[upgKey]; let lvl = state.upgrades[upgKey] || 0;
             let cost = Math.floor(upg.baseCost * Math.pow(upg.mult, lvl));
             
@@ -1279,6 +1495,10 @@
                 let currSymbol = upg.curr === 'eur' ? '€' : '₽';
                 let descText = upg.desc;
                 if (key === 'capacity' && !isMax) descText = `Вместимость: ${CAPACITY_LEVELS[lvl]} ➔ ${CAPACITY_LEVELS[lvl+1]} мест`;
+                if (key === 'speed' && !isMax) descText = `Время генерации: ${(ANIM_LEVELS[lvl]/1000).toFixed(1)} с ➔ ${(ANIM_LEVELS[lvl+1]/1000).toFixed(1)} с`;
+                if (key === 'speed' && isMax) descText = `Время генерации: ${(ANIM_LEVELS[lvl]/1000).toFixed(1)} с (максимум)`;
+                let asLocked = false;
+                if (key === 'autoseller') { let u = autoUnlocked(); asLocked = !u.ok; descText += `<br>🔒 Условия: ${u.lines.join(' · ')}`; }
 
                 list.innerHTML += `
                     <div class="upgrade-card">
@@ -1287,7 +1507,7 @@
                             <div style="font-size:11px; color:var(--text-muted);">${descText}</div>
                             <div style="font-size:10px; text-transform: uppercase; font-weight: bold; color:var(--accent); margin-top:8px;">Уровень: ${lvl}/${upg.maxLevel}</div>
                         </div>
-                        <button class="btn-upg" style="${upg.curr === 'eur' ? 'background:var(--success); box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);' : 'box-shadow: 0 4px 15px rgba(102,252,241,0.3);'}" onclick="buyUpgrade('${key}')" ${isMax || (upg.curr==='rub'?state.balance:state.euro) < cost ? 'disabled' : ''}>
+                        <button class="btn-upg" style="${upg.curr === 'eur' ? 'background:var(--success); box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);' : 'box-shadow: 0 4px 15px rgba(102,252,241,0.3);'}" onclick="buyUpgrade('${key}')" ${isMax || asLocked || (upg.curr==='rub'?state.balance:state.euro) < cost ? 'disabled' : ''}>
                             ${isMax ? 'МАКС' : cost.toLocaleString() + ' ' + currSymbol}
                         </button>
                     </div>
