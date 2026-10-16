@@ -265,6 +265,34 @@
         #modalNumber .nd.hl-d::before { background-color: rgba(255,255,255,0.22); background-color: color-mix(in srgb, var(--accent) 45%, transparent); }
         #modalComboLines .combo-line { transition: background-color .15s ease; border-radius: 8px; }
         #modalComboLines .combo-line.combo-on { background-color: rgba(255,255,255,0.08); }
+    
+        /* --- МЕНЮ, СЛИЯНИЕ, РИСК, ЛИДЕРБОРД --- */
+        .menu-title { font-size: 20px; font-weight: 800; margin: 0 0 16px; color: #fff; letter-spacing: .5px; }
+        .menu-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .menu-card { background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: 20px; padding: 18px 14px; cursor: pointer; transition: .2s; box-shadow: 0 8px 24px rgba(0,0,0,.25); }
+        .menu-card:active { transform: scale(.97); }
+        .menu-card .mi { font-size: 30px; margin-bottom: 10px; }
+        .menu-card .mt { font-weight: 800; font-size: 14px; color: #fff; margin-bottom: 4px; }
+        .menu-card .md { font-size: 11px; color: var(--text-muted); line-height: 1.4; }
+        .menu-card.soon { opacity: .7; }
+        .back-btn { background: none; border: none; color: var(--accent); font-weight: 800; font-size: 13px; cursor: pointer; padding: 0; margin-bottom: 14px; text-transform: uppercase; letter-spacing: 1px; font-family: inherit; }
+        .chip-row { display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0; }
+        .chip { background: rgba(0,0,0,.4); border: 1px solid var(--glass-border); color: var(--text-muted); padding: 7px 12px; border-radius: 16px; font-size: 11px; font-weight: 700; }
+        button.chip { cursor: pointer; font-family: inherit; }
+        .chip.on { color: #fff; border-color: var(--accent); box-shadow: 0 0 10px rgba(255,255,255,.08); }
+        .merge-slots { display: flex; gap: 10px; justify-content: center; margin: 16px 0; }
+        .merge-slot { width: 31%; min-height: 64px; border: 2px dashed var(--glass-border); border-radius: 14px; display: flex; align-items: center; justify-content: center; text-align: center; font-size: 11px; font-family: monospace; font-weight: 700; color: var(--text-muted); padding: 6px; transition: .2s; }
+        .merge-slot.full { border-style: solid; color: #fff; }
+        .card.msel { outline: 2px solid var(--accent); transform: translateY(-2px); }
+        .result-box { margin-top: 14px; padding: 14px; border-radius: 14px; text-align: center; font-weight: 800; font-size: 14px; line-height: 1.5; animation: popIn .35s cubic-bezier(.2,1.4,.4,1); }
+        .result-box.ok { background: rgba(16,185,129,.15); border: 1px solid var(--success); color: var(--success); }
+        .result-box.fail { background: rgba(255,51,102,.12); border: 1px solid var(--danger); color: var(--danger); }
+        @keyframes popIn { from { transform: scale(.85); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        .lb-row { display: flex; align-items: center; gap: 12px; padding: 12px 4px; border-bottom: 1px solid rgba(255,255,255,.05); font-size: 13px; }
+        .lb-rank { width: 28px; text-align: center; font-weight: 800; }
+        .lb-name { flex: 1; color: #fff; font-weight: 700; }
+        .lb-score { color: var(--accent); font-weight: 800; }
+        .lb-skel { height: 10px; border-radius: 5px; background: rgba(255,255,255,.08); }
     </style>
 </head>
 <body>
@@ -295,6 +323,10 @@
             <div class="nav-icon">👤</div>
             <span>Профиль</span>
         </div>
+        <div class="nav-item" id="navMenu" onclick="switchTab('menu', this)">
+            <div class="nav-icon">☰</div>
+            <span>Меню</span>
+        </div>
     </nav>
 
     <div id="toast-container"></div>
@@ -316,6 +348,7 @@
                 <div style="display: flex; justify-content: space-between; align-items: center; font-size: 13px; color: var(--text-main); margin-bottom: 15px;">
                     <span>Индекс красоты</span> <span id="modalBeautyIndex" style="font-weight:bold; color:var(--accent); background: rgba(0,240,255,0.1); padding: 4px 10px; border-radius: 12px; font-family: monospace;"></span>
                 </div>
+                <div id="modalPriceCalc" style="display:none; font-size:12px; color:var(--text-muted); line-height:1.6; margin:2px 0 14px;"></div>
 
                 <div class="combo-box" id="modalComboLines"></div>
                 
@@ -338,6 +371,7 @@
                     <button class="btn-full" id="modalSafeBtn" style="flex: 1; font-size: 12px; margin-bottom: 0;" onclick="modalToggleSafe()"></button>
                     <button class="btn-full danger" id="modalSellBtn" style="flex: 1; font-size: 12px; margin-bottom: 0;" onclick="modalSell()">Продать</button>
                 </div>
+                <button class="btn-full" id="modalAuctionBtn" style="margin-top:12px; font-size:12px;" onclick="modalAuction()">🎲 На торги</button>
             </div>
             
             <div id="modalSource" class="eval-source"></div>
@@ -371,7 +405,7 @@
                     </div>
                 </div>
                 <div class="click-hint">Нажмите на карту для генерации</div>
-                <div id="luckMini" onclick="switchTab('tab-upg', document.querySelector('[onclick*=tab-upg]'))" style="text-align:center;font-size:12px;font-weight:700;margin:10px 0;color:var(--text-muted);cursor:pointer;"></div>
+                <div id="luckMini" onclick="openSection('luck')" style="text-align:center;font-size:12px;font-weight:700;margin:10px 0;color:var(--text-muted);cursor:pointer;"></div>
                 
                 <div class="result-panel" id="resultPanel">
                     <div id="profitLabel">+0 ₽</div>
@@ -403,15 +437,79 @@
         <!-- Вкладка БИЗНЕС -->
         <div id="tab-upg" class="tab-content">
             <div style="margin-bottom: 20px; color: var(--text-muted); font-size: 12px; line-height: 1.6; text-align: center; padding: 0 20px;">Инвестируйте в серверы и алгоритмы для повышения вероятности элитных номеров.</div>
+            <div id="upgradesList"></div>
+        </div>
+
+        <!-- Вкладка МЕНЮ -->
+        <div id="tab-menu" class="tab-content">
+            <div class="menu-title">Меню</div>
+            <div class="menu-grid">
+                <div class="menu-card" onclick="openSection('merge')"><div class="mi">🔥</div><div class="mt">Печь слияния</div><div class="md">3 номера → 1 редкостью выше. Можно сгореть</div></div>
+                <div class="menu-card" onclick="openSection('risk')"><div class="mi">🎲</div><div class="mt">Всё или ничего</div><div class="md">Удвойте ставку или потеряйте её</div></div>
+                <div class="menu-card" onclick="openSection('luck')"><div class="mi">🍀</div><div class="mt">Удача и магазин</div><div class="md">Бонусы за прокруты и усиления</div></div>
+                <div class="menu-card soon" onclick="openSection('lb')"><div class="mi">🏆</div><div class="mt">Лидерборд</div><div class="md">Рейтинг игроков — скоро</div></div>
+            </div>
+        </div>
+
+        <!-- Раздел УДАЧА -->
+        <div id="tab-luck" class="tab-content">
+            <button class="back-btn" onclick="switchTab('menu', document.getElementById('navMenu'))">‹ Меню</button>
             <div class="glass-panel" id="luckPanel">
                 <h3 style="margin-top:0;font-size:14px;text-transform:uppercase;letter-spacing:1px;color:#fff;">🍀 Удача</h3>
                 <div id="luckStatus" style="font-size:13px;line-height:1.7;color:var(--text-main);margin-bottom:12px;"></div>
                 <div id="luckReady"></div>
+                <div style="font-size:11px;color:var(--text-muted);margin:14px 0 8px;text-transform:uppercase;letter-spacing:1px;">Бонусы за прокруты</div>
+                <div id="luckTiers" style="font-size:13px;line-height:1.8;color:var(--text-main);"></div>
                 <div style="font-size:11px;color:var(--text-muted);margin:14px 0 8px;text-transform:uppercase;letter-spacing:1px;">Магазин (Telegram Stars)</div>
                 <div id="luckShop"></div>
-                <div style="font-size:10px;color:var(--text-muted);margin-top:10px;line-height:1.5;">Удача xL = игра делает L попыток и оставляет лучший номер. Итог: L = 1 + (донат−1) + (бонус за прокруты−1)·0.75, максимум x25.</div>
+
             </div>
-            <div id="upgradesList"></div>
+            
+        </div>
+
+        <!-- Раздел СЛИЯНИЕ -->
+        <div id="tab-merge" class="tab-content">
+            <button class="back-btn" onclick="switchTab('menu', document.getElementById('navMenu'))">‹ Меню</button>
+            <div class="glass-panel">
+                <h3 style="margin-top:0;font-size:16px;color:#fff;">🔥 Печь слияния</h3>
+                <div style="font-size:12px;color:var(--text-muted);line-height:1.6;">Выберите редкость и положите в печь 3 номера. При успехе вы получите лучший из них на ступень выше, при неудаче сгорят все три. Номера из сейфа и надетый номер не участвуют.</div>
+                <div class="chip-row" id="mergeChances"></div>
+            </div>
+            <div class="glass-panel">
+                <div style="font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:1px;font-weight:800;">Редкость</div>
+                <div class="chip-row" id="mergeChips"></div>
+                <div class="merge-slots" id="mergeSlots"></div>
+                <div id="mergeInfo" style="text-align:center;font-size:12px;color:var(--text-muted);margin-bottom:12px;min-height:18px;"></div>
+                <button class="btn-full" style="font-size:12px;padding:10px;" onclick="mergePickCheapest()">Выбрать 3 самых дешёвых</button>
+                <button class="btn-full primary" id="mergeBtn" onclick="mergeNow()">Слить</button>
+                <div id="mergeResult"></div>
+            </div>
+            <div class="grid" id="mergeGrid"></div>
+        </div>
+
+        <!-- Раздел ВСЁ ИЛИ НИЧЕГО -->
+        <div id="tab-risk" class="tab-content">
+            <button class="back-btn" onclick="switchTab('menu', document.getElementById('navMenu'))">‹ Меню</button>
+            <div class="glass-panel">
+                <h3 style="margin-top:0;font-size:16px;color:#fff;">🎲 Всё или ничего</h3>
+                <div style="font-size:12px;color:var(--text-muted);line-height:1.6;">Выберите ставку. С шансом <b style="color:#fff;">45%</b> вы получите её обратно ×2, иначе ставка пропадает. Ставятся только игровые ₽: евро и покупки за Stars в игре не участвуют.</div>
+                <div id="riskBalance" style="margin-top:14px;font-size:13px;color:var(--text-main);"></div>
+                <div class="chip-row" id="riskBets"></div>
+                <button class="btn-full danger" id="riskBtn" onclick="riskPlay()">Рискнуть</button>
+                <div id="riskResult"></div>
+                <div id="riskHistory" style="margin-top:12px;font-size:16px;letter-spacing:4px;text-align:center;"></div>
+            </div>
+        </div>
+
+        <!-- Раздел ЛИДЕРБОРД (заготовка) -->
+        <div id="tab-lb" class="tab-content">
+            <button class="back-btn" onclick="switchTab('menu', document.getElementById('navMenu'))">‹ Меню</button>
+            <div class="glass-panel">
+                <h3 style="margin-top:0;font-size:16px;color:#fff;">🏆 Лидерборд</h3>
+                <div class="chip-row" id="lbTabs"><span class="chip on">Заработок</span><span class="chip">Редкость</span><span class="chip">Прокруты</span></div>
+                <div id="lbList"></div>
+                <div id="lbNote" style="margin-top:14px;font-size:11px;color:var(--text-muted);line-height:1.5;text-align:center;">Рейтинг игроков появится после подключения сервера.</div>
+            </div>
         </div>
 
         <!-- Вкладка ПРОФИЛЬ -->
@@ -490,7 +588,6 @@
                 <div class="stat-item"><span>🎯 Тысячники:</span><strong id="stat-zeros" style="color: #fff;">0</strong></div>
             </div>
 
-            <button class="btn-full danger" style="margin-top: 10px;" onclick="resetProgress()">Удалить аккаунт</button>
         </div>
     </div>
 
@@ -517,10 +614,10 @@
         };
 
         const RARITIES = {
-            common: { id: 'common', name: 'Обычный', color: '#94a3b8', bg: 'linear-gradient(145deg, rgba(30, 34, 45, 0.8), rgba(15, 17, 25, 0.9))', min: 250, max: 750 },
-            uncommon: { id: 'uncommon', name: 'Необычный', color: '#10b981', bg: 'linear-gradient(145deg, rgba(16, 185, 129, 0.2), rgba(15, 17, 25, 0.9))', min: 1000, max: 2500 },
-            rare: { id: 'rare', name: 'Редкий', color: '#3b82f6', bg: 'linear-gradient(145deg, rgba(59, 130, 246, 0.3), rgba(15, 17, 25, 0.9))', min: 5000, max: 12000 },
-            epic: { id: 'epic', name: 'Эпический', color: '#a855f7', bg: 'linear-gradient(145deg, rgba(168, 85, 247, 0.4), rgba(15, 17, 25, 0.9))', min: 25000, max: 60000 },
+            common: { id: 'common', name: 'Обычный', color: '#94a3b8', bg: 'linear-gradient(145deg, rgba(30, 34, 45, 0.8), rgba(15, 17, 25, 0.9))', min: 200, max: 500 },
+            uncommon: { id: 'uncommon', name: 'Необычный', color: '#10b981', bg: 'linear-gradient(145deg, rgba(16, 185, 129, 0.2), rgba(15, 17, 25, 0.9))', min: 800, max: 1800 },
+            rare: { id: 'rare', name: 'Редкий', color: '#3b82f6', bg: 'linear-gradient(145deg, rgba(59, 130, 246, 0.3), rgba(15, 17, 25, 0.9))', min: 3500, max: 8000 },
+            epic: { id: 'epic', name: 'Эпический', color: '#a855f7', bg: 'linear-gradient(145deg, rgba(168, 85, 247, 0.4), rgba(15, 17, 25, 0.9))', min: 20000, max: 45000 },
             legendary: { id: 'legendary', name: 'Легендарный', color: '#f59e0b', bg: 'linear-gradient(145deg, rgba(245, 158, 11, 0.5), rgba(15, 17, 25, 0.9))', min: 150000, max: 400000 },
             mythic: { id: 'mythic', name: 'Мифический', color: '#ff3366', bg: 'linear-gradient(145deg, rgba(255, 51, 102, 0.6), rgba(15, 17, 25, 0.9))', min: 1500000, max: 5000000 }
         };
@@ -537,7 +634,8 @@
         const UPGRADES = {
             capacity: { id: 'capacity', name: 'Дата-центр', desc: 'Увеличивает количество слотов в сейфе', maxLevel: 5, baseCost: 10000, mult: 4, curr: 'rub' },
             luck: { id: 'luck', name: 'Связи дилера', desc: 'Постоянно +1 доп. номер на выбор за уровень (берётся лучший)', maxLevel: 5, baseCost: 50000, mult: 4, curr: 'rub' },
-            speed: { id: 'speed', name: 'Быстрая генерация', desc: 'Сокращает время одной генерации', maxLevel: 5, baseCost: 5000, mult: 3, curr: 'rub' },
+            speed: { id: 'speed', name: 'Быстрая генерация', desc: 'Сокращает время одной генерации', maxLevel: 6, baseCost: 5000, mult: 3, curr: 'rub' },
+            trust: { id: 'trust', name: 'Надёжный покупатель', desc: 'Снижает шанс срыва сделки на торгах', maxLevel: 5, baseCost: 20000, mult: 3, curr: 'rub' },
             autoseller: { id: 'autoseller', name: 'Автоселлер', desc: 'Автоматическая продажа мусора из сейфа', maxLevel: 1, baseCost: 150000, mult: 1, curr: 'rub' }
         };
 
@@ -683,8 +781,6 @@
             if (/0000$/.test(tail)) patternsFound.push({ name: '🎯 Мега-тысячник (0000)', score: 200, desc: 'Номер заканчивается на 4 нуля.' });
             else if (/000$/.test(tail)) patternsFound.push({ name: '🎯 Тысячник (000)', score: 50, desc: 'Номер заканчивается на 3 нуля.' });
 
-            let yyCount = (tail.match(/69/g) || []).length;
-            if (yyCount > 0) patternsFound.push({ name: `☯ Инь и Ян (x${yyCount})`, score: 0, desc: 'Содержит комбинацию 69. Даёт +15% к финальной цене.' });
 
             patternsFound.sort((a, b) => b.score - a.score); 
             let tailScore = 0;
@@ -718,18 +814,19 @@
             let rMin = rarityData && rarityData.min ? rarityData.min : 250;
             let rMax = rarityData && rarityData.max ? rarityData.max : 750;
 
-            let priceBase = rMin + Math.floor(pseudoRandom * (rMax - rMin));
-            let beautyValue = Math.floor(totalScore * 30 * (1 + totalScore/150)); 
-            let finalPrice = priceBase + beautyValue;
-
-            if (yyCount > 0) finalPrice = Math.floor(finalPrice * (1 + 0.15 * yyCount));
+            // |sin| сам по себе смещён к верхней границе диапазона; arcsin выравнивает его до равномерного
+            let priceBase = rMin + Math.floor((Math.asin(Math.min(1, pseudoRandom)) / (Math.PI / 2)) * (rMax - rMin));
+            // Цена = базовая цена номера × множитель красоты (потолок x2.5)
+            const xMult = 1 + Math.min(totalScore, 150) / 100;
+            const yyMult = 1; // «Инь и Ян» убрана; поле осталось только для старых номеров
+            let finalPrice = Math.floor(priceBase * xMult);
             if (finalPrice > 10 && finalPrice % 10 === 0) finalPrice += Math.floor((pseudoRandom * 9)) + 1;
 
             let opName = OPERATORS[prefix] || "Федеральный оператор";
 
             return {
                 number: numberStr, operatorName: opName, primaryPatternName: comboLines[0] ? comboLines[0].name : "Обычный номер",
-                comboLines: comboLines, rarityId: rarityId, basePrice: finalPrice, score: totalScore,
+                comboLines: comboLines, rarityId: rarityId, basePrice: finalPrice, score: totalScore, baseRaw: priceBase, xMult: xMult, yyMult: yyMult,
                 source: 'Локальная алгоритмическая модель (v27)'
             };
         }
@@ -836,7 +933,13 @@
             if (tabId === 'col') renderCollection();
             if (tabId === 'prof') renderProfile();
             if (tabId === 'upg') renderUpgrades();
+            if (tabId === 'merge') renderMerge();
+            if (tabId === 'risk') renderRisk();
+            if (tabId === 'luck') renderLuck();
+            if (tabId === 'lb') loadLeaderboard();
+            document.querySelector('.content').scrollTop = 0;
         }
+        function openSection(id) { switchTab(id, document.getElementById('navMenu')); }
 
         function updateMarket() {
             if (Math.random() < 0.4) {
@@ -947,6 +1050,173 @@
             if (lastGeneratedSim && !isAnimating) openModal(lastGeneratedSim.id);
         }
 
+        // --- ПРОДАЖА ПО ПРОИЗВОЛЬНОЙ ЦЕНЕ (для торгов) ---
+        function profitForPrice(mPrice, rarityId) {
+            let total = Math.floor(mPrice * (1 - getCommissionPercent() / 100));
+            if (rarityId === 'mythic') return { rub: total % 1000000, eur: Math.floor(total / 1000000) };
+            return { rub: total, eur: 0 };
+        }
+
+        // --- ТОРГИ: риск при продаже ---
+        const TRUST_FAIL = [0.08, 0.06, 0.04, 0.025, 0.012, 0];
+        function auctionFailChance() { return TRUST_FAIL[Math.min((state.upgrades && state.upgrades.trust) || 0, TRUST_FAIL.length - 1)]; }
+        let _auctionArmed = false, _auctionTimer = null;
+        function updateAuctionBtn() {
+            const btn = document.getElementById('modalAuctionBtn'); if (!btn) return;
+            const item = state.collection.find(i => i.id === currentModalItemId);
+            _auctionArmed = false; clearTimeout(_auctionTimer);
+            btn.innerText = '🎲 На торги (×0.4–×2)';
+            const off = !item || item.locked || (state.equipped && state.equipped.id === item.id);
+            btn.disabled = !!off; btn.style.opacity = off ? '0.3' : '1';
+        }
+        function modalAuction() {
+            if (!currentModalItemId) return;
+            const idx = state.collection.findIndex(i => i.id === currentModalItemId);
+            const item = state.collection[idx];
+            if (!item || item.locked || (state.equipped && state.equipped.id === item.id)) return;
+            const btn = document.getElementById('modalAuctionBtn'), fail = auctionFailChance();
+            if (!_auctionArmed) {
+                _auctionArmed = true;
+                btn.innerText = `⚠️ Подтвердить: срыв ${+(fail * 100).toFixed(1)}% — номер пропадёт`;
+                clearTimeout(_auctionTimer); _auctionTimer = setTimeout(updateAuctionBtn, 4000);
+                return;
+            }
+            clearTimeout(_auctionTimer); _auctionArmed = false;
+            if (Math.random() < fail) {
+                state.collection.splice(idx, 1);
+                saveGame(); renderCollection(); closeModal();
+                showToast('💥 Сделка сорвана — номер потерян', 'error'); return;
+            }
+            const mult = 0.4 + Math.pow(Math.random(), 1.5) * 1.6;
+            const p = profitForPrice(Math.floor(getMarketPrice(item.baseDynamicPrice, item.rarity.id) * mult), item.rarity.id);
+            state.balance += p.rub; state.stats.earned += p.rub;
+            if (p.eur > 0) { state.euro += p.eur; state.stats.earnedEuro += p.eur; }
+            state.collection.splice(idx, 1);
+            saveGame(); updateBalanceUI(); renderCollection(); closeModal();
+            showToast(`🎲 Торги ×${mult.toFixed(2)}: +${p.rub.toLocaleString()} ₽` + (p.eur > 0 ? ` | +${p.eur.toLocaleString()} €` : ''), mult >= 1 ? 'success' : 'info');
+        }
+        const _openModalBase = openModal;
+        openModal = function (id) { _openModalBase(id); updateAuctionBtn(); };
+
+        // --- ПЕЧЬ СЛИЯНИЯ ---
+        const MERGE_CHANCES = { common: 0.70, uncommon: 0.55, rare: 0.40, epic: 0.25, legendary: 0.08 };
+        const RARITY_ORDER = ['common', 'uncommon', 'rare', 'epic', 'legendary', 'mythic'];
+        let mergeRarity = null, mergeSel = [];
+        function mergePool(rid) { return state.collection.filter(i => i.rarity.id === rid && !i.locked && !(state.equipped && state.equipped.id === i.id)); }
+        function pickMergeRarity(id) { mergeRarity = id; mergeSel = []; document.getElementById('mergeResult').innerHTML = ''; renderMerge(); }
+        function toggleMerge(id) {
+            const k = mergeSel.indexOf(id);
+            if (k >= 0) mergeSel.splice(k, 1); else if (mergeSel.length < 3) mergeSel.push(id);
+            renderMerge();
+        }
+        function mergePickCheapest() {
+            if (!mergeRarity) { showToast('Сначала выберите редкость', 'error'); return; }
+            mergeSel = mergePool(mergeRarity).sort((a, b) => a.baseDynamicPrice - b.baseDynamicPrice).slice(0, 3).map(i => i.id);
+            renderMerge();
+        }
+        function renderMerge() {
+            const top = RARITY_ORDER.slice(0, 5);
+            document.getElementById('mergeChances').innerHTML = top.map((id, k) => {
+                const r = RARITIES[id], n = RARITIES[RARITY_ORDER[k + 1]];
+                return `<span class="chip"><b style="color:${r.color}">${r.name}</b> → <b style="color:${n.color}">${n.name}</b> · ${Math.round(MERGE_CHANCES[id] * 100)}%</span>`;
+            }).join('');
+            document.getElementById('mergeChips').innerHTML = top.map(id => {
+                const r = RARITIES[id];
+                return `<button class="chip ${mergeRarity === id ? 'on' : ''}" style="${mergeRarity === id ? 'border-color:' + r.color + ';color:' + r.color : ''}" onclick="pickMergeRarity('${id}')">${r.name} · ${mergePool(id).length}</button>`;
+            }).join('');
+            const pool = mergeRarity ? mergePool(mergeRarity) : [];
+            mergeSel = mergeSel.filter(id => pool.some(i => i.id === id));
+            document.getElementById('mergeSlots').innerHTML = [0, 1, 2].map(k => {
+                const it = pool.find(i => i.id === mergeSel[k]);
+                return it ? `<div class="merge-slot full" style="border-color:${it.rarity.color}">${it.number.replace('+7 ', '')}</div>` : `<div class="merge-slot">＋</div>`;
+            }).join('');
+            const btn = document.getElementById('mergeBtn'), info = document.getElementById('mergeInfo');
+            if (mergeRarity) {
+                const r = RARITIES[mergeRarity], n = RARITIES[RARITY_ORDER[RARITY_ORDER.indexOf(mergeRarity) + 1]];
+                info.innerHTML = `Шанс успеха: <b style="color:#fff">${Math.round(MERGE_CHANCES[mergeRarity] * 100)}%</b> → ${n.name}. При неудаче сгорят все 3 номера.`;
+            } else info.innerText = 'Выберите редкость, затем 3 номера';
+            btn.disabled = mergeSel.length !== 3; btn.style.opacity = mergeSel.length === 3 ? '1' : '0.4';
+            const grid = document.getElementById('mergeGrid'); grid.innerHTML = '';
+            if (mergeRarity && pool.length === 0) grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;color:var(--text-muted);padding:24px;font-weight:bold;">Нет подходящих номеров (защищённые и надетый не участвуют)</div>';
+            [...pool].sort((a, b) => a.baseDynamicPrice - b.baseDynamicPrice).slice(0, 60).forEach(item => {
+                const div = document.createElement('div');
+                div.className = 'card' + (mergeSel.includes(item.id) ? ' msel' : '');
+                div.style.borderTopColor = item.rarity.color;
+                div.innerHTML = `<div class="card-num" style="color:#fff;">${item.number}</div><div class="card-price">${getSellProfit(item).rub.toLocaleString()} ₽</div>`;
+                div.onclick = () => toggleMerge(item.id);
+                grid.appendChild(div);
+            });
+        }
+        function mergeNow() {
+            const pool = mergeRarity ? mergePool(mergeRarity) : [];
+            const picked = mergeSel.map(id => pool.find(i => i.id === id)).filter(Boolean);
+            if (picked.length !== 3) { showToast('Выберите 3 номера', 'error'); return; }
+            const next = RARITIES[RARITY_ORDER[RARITY_ORDER.indexOf(mergeRarity) + 1]];
+            const best = [...picked].sort((a, b) => b.baseDynamicPrice - a.baseDynamicPrice)[0];
+            state.collection = state.collection.filter(i => !picked.includes(i));
+            const box = document.getElementById('mergeResult'); let res = null;
+            if (Math.random() < MERGE_CHANCES[mergeRarity]) {
+                const baseRaw = next.min + Math.floor(Math.random() * (next.max - next.min));
+                const xMult = best.xMult || 1, yyMult = best.yyMult || 1;
+                res = { ...best, id: Date.now() + Math.random(), rarity: next, baseRaw, xMult, yyMult, baseDynamicPrice: Math.floor(baseRaw * xMult * yyMult), locked: false, merged: true };
+                state.collection.unshift(res);
+            }
+            mergeSel = []; saveGame(); updateBalanceUI(); renderMerge();
+            if (res) {
+                box.innerHTML = `<div class="result-box ok">🔥 Успех!<br><span style="font-family:monospace;color:#fff;">${res.number}</span><br><span style="color:${next.color}">${next.name}</span><br><button class="btn-full" style="margin:10px 0 0;font-size:12px;padding:10px;" id="mergeOpenBtn">Открыть номер</button></div>`;
+                document.getElementById('mergeOpenBtn').onclick = () => openModal(res.id);
+            } else box.innerHTML = `<div class="result-box fail">💥 Номера сгорели<br><span style="font-size:12px;font-weight:600;">Печь забрала все три. Повезёт в следующий раз.</span></div>`;
+        }
+
+        // --- ВСЁ ИЛИ НИЧЕГО ---
+        const RISK_CHANCE = 0.45;
+        let riskFrac = 0.25, riskArmed = false, riskTimer = null, riskHist = [];
+        function riskBetAmount() { return Math.floor(state.balance * riskFrac); }
+        function setRiskBet(f) { riskFrac = f; riskResetArm(); renderRisk(); }
+        function riskResetArm() { riskArmed = false; clearTimeout(riskTimer); const b = document.getElementById('riskBtn'); if (b) b.innerText = 'Рискнуть'; }
+        function renderRisk() {
+            document.getElementById('riskBalance').innerHTML = `Баланс: <b style="color:#fff">${state.balance.toLocaleString()} ₽</b> · Ставка: <b style="color:var(--accent)">${riskBetAmount().toLocaleString()} ₽</b>`;
+            document.getElementById('riskBets').innerHTML = [[0.25, '25%'], [0.5, '50%'], [1, 'Всё']].map(([f, t]) =>
+                `<button class="chip ${riskFrac === f ? 'on' : ''}" onclick="setRiskBet(${f})">${t}</button>`).join('');
+            document.getElementById('riskHistory').innerText = riskHist.join(' ');
+        }
+        function riskPlay() {
+            const bet = riskBetAmount();
+            if (bet < 100) { showToast('Ставка слишком маленькая (от 100 ₽)', 'error'); return; }
+            const btn = document.getElementById('riskBtn');
+            if (!riskArmed) {
+                riskArmed = true; btn.innerText = `⚠️ Подтвердить ставку ${bet.toLocaleString()} ₽`;
+                clearTimeout(riskTimer); riskTimer = setTimeout(() => { riskResetArm(); }, 4000); return;
+            }
+            riskResetArm();
+            const win = Math.random() < RISK_CHANCE;
+            if (win) state.balance += bet; else state.balance -= bet;   // заработок в статистику не идёт
+            riskHist = [win ? '🟢' : '🔴', ...riskHist].slice(0, 8);
+            saveGame(); updateBalanceUI(); renderRisk();
+            document.getElementById('riskResult').innerHTML = win
+                ? `<div class="result-box ok">🎉 Победа!<br>+${bet.toLocaleString()} ₽</div>`
+                : `<div class="result-box fail">💸 Проигрыш<br>−${bet.toLocaleString()} ₽</div>`;
+        }
+
+        // --- ЛИДЕРБОРД (заготовка) ---
+        // Подключение: укажите адрес сервера. Ожидаемый ответ: [{ "name": "Игрок", "score": 12345 }, ...] от лучшего к худшему.
+        const LEADERBOARD_API = '';
+        function renderLeaderboard(rows) {
+            const box = document.getElementById('lbList'); if (!box) return;
+            const medals = ['🥇', '🥈', '🥉'];
+            if (!rows || !rows.length) {
+                box.innerHTML = [0, 1, 2, 3, 4].map(k => `<div class="lb-row"><div class="lb-rank">${medals[k] || (k + 1)}</div><div class="lb-name"><div class="lb-skel" style="width:${70 - k * 8}%"></div></div><div class="lb-skel" style="width:48px"></div></div>`).join('');
+                return;
+            }
+            box.innerHTML = rows.map((r, k) => `<div class="lb-row"><div class="lb-rank">${medals[k] || (k + 1)}</div><div class="lb-name">${String(r.name).replace(/[<>&]/g, '')}</div><div class="lb-score">${Number(r.score).toLocaleString()}</div></div>`).join('');
+        }
+        function loadLeaderboard() {
+            renderLeaderboard(null);
+            if (!LEADERBOARD_API) return;
+            fetch(LEADERBOARD_API).then(r => r.json()).then(renderLeaderboard).catch(() => {});
+            document.getElementById('lbNote').innerText = '';
+        }
+
         // --- ТЕМЫ ИНТЕРФЕЙСА ---
         const THEMES = {
             classic:  { name: 'Классика',      vars: { '--bg-dark':'#050507','--bg-light':'#12141d','--glass-bg':'rgba(20,22,30,0.6)','--glass-border':'rgba(255,255,255,0.06)','--accent':'#00f0ff' } },
@@ -974,12 +1244,10 @@
         // --- УДАЧА ---
         // Бесплатные бонусы за прокруты: проверяются от старшего к младшему.
         const LUCK_TIERS = [
-            { every: 1000, mult: 20, spins: 3,  reset: true },
-            { every: 500,  mult: 5,  spins: 5 },
-            { every: 100,  mult: 2,  spins: 10 }
+            { every: 100, mult: 20, spins: 3, reset: true }
         ];
         const MAX_LUCK = 25;
-        const ANIM_LEVELS = [2000, 1700, 1400, 1100, 950, 800]; // мс на одну генерацию по уровням апгрейда
+        const ANIM_LEVELS = [2000, 1500, 1100, 800, 600, 500, 200]; // мс на одну генерацию по уровням апгрейда
         function getAnimMs() { return ANIM_LEVELS[Math.min((state.upgrades && state.upgrades.speed) || 0, ANIM_LEVELS.length - 1)]; }
         const STARS_SHOP = [
             { id: 'luck2_1h',  label: 'Удача x2 на 1 час',  mult: 2, ms: 3600000 },
@@ -992,6 +1260,7 @@
             if (!state.luck) state.luck = { spins: 0, ready: [], active: null, donat: null };
             if (!Array.isArray(state.luck.ready)) state.luck.ready = [];
             if (state.luck.spins == null) state.luck.spins = 0;
+            if (state.luck.spins >= 100) state.luck.spins %= 100; // старые сохранения: цикл теперь 100 прокрутов
             if (state.luck.donat && state.luck.donat.until <= Date.now()) state.luck.donat = null;
             return state.luck;
         }
@@ -1009,7 +1278,8 @@
             const l = ensureLuck();
             const D = l.donat ? l.donat.mult : 1;
             const F = (l.active && l.active.left > 0) ? l.active.mult : 1;
-            const L = Math.min(MAX_LUCK, 1 + (D - 1) + (F - 1) * 0.75);
+            // бонус за прокруты сам по себе даёт полный множитель; вместе с донатом множители складываются
+            const L = Math.min(MAX_LUCK, D > 1 && F > 1 ? D + F : Math.max(D, F));
             return { L, D, F };
         }
         function countSpinAndConsumeLuck() {
@@ -1059,9 +1329,13 @@
             st.innerHTML = `Итоговая удача: <b style="color:var(--accent)">x${+c.L.toFixed(2)}</b><br>` +
                 (l.donat ? `Донат x${l.donat.mult}: осталось ${fmtLeft(l.donat.until - Date.now())}<br>` : '') +
                 (l.active ? `Бонус за прокруты x${l.active.mult}: осталось ${l.active.left} прокр.<br>` : '') +
-                `Прокрутов в цикле: ${l.spins}/1000 (до бонуса: ${nextT})`;
+                `Прокрутов в цикле: ${l.spins}/100 (до бонуса: ${nextT})`;
             document.getElementById('luckReady').innerHTML = l.ready.map((b, i) =>
                 `<button class="btn-full primary" style="font-size:12px;padding:10px;" onclick="activateLuck(${i})">Подготовленная удача x${b.mult} на ${b.spins} прокр. — активировать</button>`).join('');
+            const tiers = document.getElementById('luckTiers');
+            if (tiers) tiers.innerHTML = [...LUCK_TIERS].sort((a, b) => a.every - b.every).map(t =>
+                `<div>🔹 Каждые <b>${t.every}</b> прокрутов — удача <b style="color:var(--accent)">x${t.mult}</b> на ${t.spins} прокр.</div>`).join('') +
+                `<div style="font-size:11px;color:var(--text-muted);margin-top:4px;">Бонус включается автоматически, затем счётчик начинается заново.</div>`;
             document.getElementById('luckShop').innerHTML = STARS_SHOP.map(p =>
                 `<button class="btn-full" style="font-size:12px;padding:10px;" onclick="buyStars('${p.id}')">⭐ ${p.label} — цена скоро</button>`).join('');
         }
@@ -1164,7 +1438,8 @@
                 const newSim = {
                     id: Date.now() + Math.random(), number: bestEval.number, rarity: rarity, locked: false,
                     baseDynamicPrice: bestEval.basePrice, desc: bestEval.primaryPatternName,
-                    comboLines: bestEval.comboLines, score: bestEval.score, operator: bestEval.operatorName
+                    comboLines: bestEval.comboLines, score: bestEval.score, operator: bestEval.operatorName,
+                    baseRaw: bestEval.baseRaw, xMult: bestEval.xMult, yyMult: bestEval.yyMult
                 };
 
                 let profitObj = getSellProfit(newSim);
@@ -1304,6 +1579,13 @@
             
             document.getElementById('modalOperator').innerText = item.operator || "Федеральный оператор";
             document.getElementById('modalBeautyIndex').innerText = "x" + fmtX(1 + item.score / 100);
+            const pc = document.getElementById('modalPriceCalc');
+            if (item.baseRaw) {
+                pc.innerHTML = `Базовая цена <b style="color:#fff">${item.baseRaw.toLocaleString('ru-RU')} ₽</b> × красота <b style="color:var(--accent)">x${fmtX(item.xMult)}</b>${item.score > 150 ? ' (макс.)' : ''}` +
+                    (item.yyMult > 1 ? ` × Инь и Ян <b style="color:var(--accent)">x${fmtX(item.yyMult)}</b>` : '') +
+                    ` ≈ <b style="color:#fff">${item.baseDynamicPrice.toLocaleString('ru-RU')} ₽</b>`;
+                pc.style.display = 'block';
+            } else pc.style.display = 'none';
             
             let comboBox = document.getElementById('modalComboLines');
             comboBox.innerHTML = '<div style="font-size:10px;color:var(--text-muted);margin-bottom:8px;">Нажмите на комбинацию — она подсветится в номере</div>';
@@ -1497,6 +1779,7 @@
                 if (key === 'capacity' && !isMax) descText = `Вместимость: ${CAPACITY_LEVELS[lvl]} ➔ ${CAPACITY_LEVELS[lvl+1]} мест`;
                 if (key === 'speed' && !isMax) descText = `Время генерации: ${(ANIM_LEVELS[lvl]/1000).toFixed(1)} с ➔ ${(ANIM_LEVELS[lvl+1]/1000).toFixed(1)} с`;
                 if (key === 'speed' && isMax) descText = `Время генерации: ${(ANIM_LEVELS[lvl]/1000).toFixed(1)} с (максимум)`;
+                if (key === 'trust') descText = `Срыв сделки на торгах: ${(TRUST_FAIL[lvl]*100).toFixed(1).replace('.0','')}%` + (!isMax ? ` ➔ ${(TRUST_FAIL[lvl+1]*100).toFixed(1).replace('.0','')}%` : ' (максимум)');
                 let asLocked = false;
                 if (key === 'autoseller') { let u = autoUnlocked(); asLocked = !u.ok; descText += `<br>🔒 Условия: ${u.lines.join(' · ')}`; }
 
@@ -1505,11 +1788,13 @@
                         <div>
                             <div style="font-weight:800; font-size:14px; margin-bottom:5px; color:${upg.curr === 'eur' ? 'var(--success)' : '#fff'};">${upg.name}</div>
                             <div style="font-size:11px; color:var(--text-muted);">${descText}</div>
-                            <div style="font-size:10px; text-transform: uppercase; font-weight: bold; color:var(--accent); margin-top:8px;">Уровень: ${lvl}/${upg.maxLevel}</div>
                         </div>
+                        <div style="display:flex; align-items:center; gap:12px; flex-shrink:0;">
+                        <div title="Уровень ${lvl}/${upg.maxLevel}" style="display:flex; flex-direction:column-reverse; gap:3px;">${Array.from({length: upg.maxLevel}, (_, k) => `<span style="display:block; width:8px; height:9px; border-radius:2px; background:${k < lvl ? 'var(--accent)' : 'rgba(255,255,255,0.12)'}; ${k < lvl ? 'box-shadow:0 0 6px var(--accent);' : ''}"></span>`).join('')}</div>
                         <button class="btn-upg" style="${upg.curr === 'eur' ? 'background:var(--success); box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);' : 'box-shadow: 0 4px 15px rgba(102,252,241,0.3);'}" onclick="buyUpgrade('${key}')" ${isMax || asLocked || (upg.curr==='rub'?state.balance:state.euro) < cost ? 'disabled' : ''}>
                             ${isMax ? 'МАКС' : cost.toLocaleString() + ' ' + currSymbol}
                         </button>
+                        </div>
                     </div>
                 `;
             }
